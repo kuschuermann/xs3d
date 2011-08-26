@@ -47,7 +47,7 @@ class Viewer3d
   Viewer3d()
   {
     super();
-    setViewAngle( new Vector3d(0.0d, Math.PI, Math.PI) );
+    setViewAngle( new Vector3d(-1.0d, 3.35d, Math.PI) );
     setScreenPosition( new Vector3d(0,0,50) );
 
     this.modelScale = 1000; // a fudge factor to control distortion
@@ -78,7 +78,7 @@ class Viewer3d
   }
 
   /**
-   * Set the view angle. It defaults to (0,pi,pi)
+   * Set the view angle. It defaults to (-1,3.35,pi)
    **/
   public void setViewAngle( final Vector3d viewAngle )
   {
@@ -91,10 +91,15 @@ class Viewer3d
                             final double z )
   {
     // precalculate the values needed by the project method
-    this.CT = Math.cos( x );    // cos theta
-    this.ST = Math.sin( x );    // sin theta
-    this.CP = Math.cos( y );    // cos phi
-    this.SP = Math.sin( y );    // sin phi
+    this.cosTheta = Math.cos( x );
+    this.sinTheta = Math.sin( x );
+    this.cosPhi = Math.cos( y );
+    this.sinPhi = Math.sin( y );
+
+    this.sinThetaSinPhi = sinTheta * sinPhi;
+    this.cosThetaSinPhi = cosTheta * sinPhi;
+    this.sinThetaCosPhi = sinTheta * cosPhi;
+    this.cosThetaCosPhi = cosTheta * cosPhi;
 
     this.viewAngleX = x;
     this.viewAngleY = y;
@@ -130,16 +135,16 @@ class Viewer3d
     final double pz = point.getZ();
 
     final double x = (screenPositionX +
-                      (px * CT) -
-                      (py * ST));
+                      (px * cosTheta) -
+                      (py * sinTheta));
     final double y = (screenPositionY +
-                      (px * ST * SP) +
-                      (py * CT * SP) +
-                      (pz * CP));
+                      (px * sinThetaSinPhi) +
+                      (py * cosThetaSinPhi) +
+                      (pz * cosPhi));
     final double z = ((screenPositionZ +
-                       (px * ST * CP) +
-                       (py * CT * CP) -
-                       (pz * SP)));
+                       (px * sinThetaCosPhi) +
+                       (py * cosThetaCosPhi) -
+                       (pz * sinPhi)));
     final double temp = viewAngleZ / z;
 
     final Point2d p2d = new Point2d();
@@ -555,7 +560,8 @@ class Viewer3d
   private double screenPositionX, screenPositionY, screenPositionZ;
   private double viewAngleX, viewAngleY, viewAngleZ;
   private int modelScale;
-  private double CT, ST, CP, SP;
+  private double cosTheta, sinTheta, cosPhi, sinPhi;
+  private double sinThetaSinPhi, cosThetaSinPhi, sinThetaCosPhi, cosThetaCosPhi;
   private int _counter;
   //
   /**
