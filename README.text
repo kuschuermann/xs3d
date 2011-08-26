@@ -1,0 +1,27 @@
+----------------------------------------------------------------------
+XS3D: The Extremely Simple 3D Rendering Engine
+Copyright (C) 2011 K. Udo Schuermann
+Licensed under the GNU General Public License v3 or later
+----------------------------------------------------------------------
+
+This engine supports the rendering of points (as tiny spheres), edges
+(connecting two points), and surfaces (formed by three or more edges).
+If any part of a compound element (line or surface) falls behind the
+viewer, no part of it is rendered because the engine performs z-buffer
+sorting at an object, rather than the pixel-level, and cannot clip the
+display using a pixel-level z-buffer.
+
+Please note that there are plenty of 3D engines out there (Irrlicht
+and JMonkeyEngine, for example, or the venerable Java3D) which are to
+XS3D what a shining skyscraper is to a moonshiner's rickety shack, but
+I've had need for drawing extremely simple shapes in 3D space and did
+not want the weight and complexity of a full-blown 3D framework, just
+a simple piece of code that did the job, but had no dependencies.
+
+You, too, might like it simply for what it is, an extremely simple 3D
+rendering engine!
+
+--Udo Schuermann
+(August 2011)
+
+#eot

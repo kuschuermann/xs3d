@@ -1,0 +1,31 @@
+# This file stores the choices you made in AntBuilder.
+# It simplifies rebuilding Ant's build.xml file if you
+# wish to adjust your choices at a later time but it's
+# not critical to keep around if you really don't want
+# to keep it; be careful of modifying it by hand.
+
+project-name=XS3D
+project-is-war=false
+executable-file=xs3d
+main-class=Main
+default-java-version=1.5
+repackage-libs=false
+include-lib=false
+include-img=false
+include-src=true
+include-etc=false
+checksum-executable=true
+git-support=false
+svn-support=false
+create-skeleton=true
+sign-executable=false
+sign-libraries=false
+sign-properties-file=
+jaxb-support=false
+path-src=src
+path-lib=lib
+path-img=img
+path-etc=etc
+path-build=.build
+
+#eof
