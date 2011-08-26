@@ -94,6 +94,7 @@
 			whenempty="fail"
 			index="false"><!-- index='false' allows external JARs to be found -->
 			<fileset dir="${build-dir}" includes="**/*.class"/>
+			<fileset dir="." includes="LICENSE.TXT"/>
 			<fileset dir="." includes="${src-dir}/**/*.java"/>
 			<fileset dir="." includes="build.xml"/>
 		</jar>

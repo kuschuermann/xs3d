@@ -10,35 +10,57 @@ import java.util.Iterator;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 
+// This file is part of XS3D.
+//
+// XS3D is free software: you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Foobar is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
- * A mesh consisting of points, edges between two points, and surfaces
- * represented by three or more edges. Edges and surfaces have color.
+ * <p>A mesh consisting of {@link Point}S, {@link Edge}S, and {@link
+ * Surface}S. Edges connect two points. Surfaces are bounded by three
+ * or more (3+) edges.</p>
+ *
+ * <p>It is not necessary to add the points to the Mesh that form the
+ * end points of a Mesh, or add the edges to a Mesh that form the
+ * bounds of a Surface.</p>
+ *
+ * <p>Edges and Surfaces have color. Points do not (currently) define
+ * a color. Exercise for the aspiring programmer: Add a fourth class
+ * that (maybe extends Point) but is rendered with a custom drawing
+ * routine (in Viewer3d).</p>
+ *
+ * @author K. Udo Schuermann
  **/
 public class Mesh
 {
   /**
-   * Our {@link Viewer3d} registers itself as a ChangeListener so that
-   * it can redraw the display whenever necessary. At this point the
-   * Mesh does not initiate such a call on its own but you might want
-   * to make {@link #notifyChangeListeners()} public and call that
-   * after making a change to the Mesh, or call Viewer3d.repaint(),
-   * instead.
+   * <p>Add a {@link ChangeListener} to be notified when any Mesh
+   * element (point, edge, or surface) is added to or removed from the
+   * Mesh.</p>
+   *
+   * <p>The {@link Viewer3d} registers itself as a ChangeListener so
+   * that it can redraw the display when the Mesh contents change.
    **/
   public void addChangeListener( final ChangeListener l )
   {
     changeListeners.add( l );
   }
+  /**
+   * <p>Remove a {@link ChangeListener} from the Mesh.
+   **/
   public void removeChangeListener( final ChangeListener l )
   {
     changeListeners.remove( l );
-  }
-  private void notifyChangeListeners()
-  {
-    final ChangeEvent e = new ChangeEvent( this );
-    for( ChangeListener l : changeListeners )
-      {
-        l.stateChanged( e );
-      }
   }
 
   /**
@@ -47,6 +69,7 @@ public class Mesh
   public void add( final Point3d p )
   {
     points.add( p );
+    notifyChangeListeners();
   }
   /**
    * Remove a single Point3d from the Mesh.
@@ -103,6 +126,7 @@ public class Mesh
             surfaces.remove( s );
           }
       }
+    notifyChangeListeners();
   }
 
   /**
@@ -111,6 +135,7 @@ public class Mesh
   public void add( final Edge e )
   {
     edges.add( e );
+    notifyChangeListeners();
   }
   /**
    * Remove an Edge from the Mesh.
@@ -146,6 +171,7 @@ public class Mesh
             surfaces.remove( s );
           }
       }
+    notifyChangeListeners();
   }
 
   /**
@@ -154,6 +180,7 @@ public class Mesh
   public void add( final Surface s )
   {
     surfaces.add( s );
+    notifyChangeListeners();
   }
   /**
    * Remove a Surface from the Mesh.
@@ -161,6 +188,7 @@ public class Mesh
   public void remove( final Surface s )
   {
     surfaces.remove( s );
+    notifyChangeListeners();
   }
 
   public Collection<Point3d> getPoints()
@@ -176,9 +204,25 @@ public class Mesh
     return surfaces;
   }
 
+
+  private void notifyChangeListeners()
+  {
+    final ChangeEvent e = new ChangeEvent( this );
+    for( ChangeListener l : changeListeners )
+      {
+        l.stateChanged( e );
+      }
+  }
+
+  // ======================================================================
+  // Nested classes (Point3d, Edge, Surface)
+  // ======================================================================
+
   /**
-   * A point in 3D space. It has no color, but the Viewer3d renders it
-   * as a little sphere.
+   * A point in 3D space. It has no color (at this time), but the
+   * Viewer3d renders it as a little sphere.
+   *
+   * @author K. Udo Schuermann
    **/
   public static class Point3d
   {
@@ -219,7 +263,9 @@ public class Mesh
   }
 
   /**
-   * A colored edge in 3D space defined by 2 points
+   * A colored edge in 3D space defined by 2 {@link Point3d}S.
+   *
+   * @author K. Udo Schuermann
    **/
   public static class Edge
   {
@@ -253,7 +299,9 @@ public class Mesh
   }
 
   /**
-   * A colored surface in 3D space defined by 3 or more edges.
+   * A colored surface in 3D space defined by 3 or more {@link Edge}S.
+   *
+   * @author K. Udo Schuermann
    **/
   public static class Surface
     implements Iterable<Edge>
@@ -333,8 +381,12 @@ public class Mesh
     private final List<Edge> edges = new ArrayList<Edge>();
   }
 
+  // The structures (points, edges, surfaces) contained by the Mesh
   private final List<Point3d> points = new ArrayList<Point3d>();
   private final List<Edge> edges = new ArrayList<Edge>();
   private final List<Surface> surfaces = new ArrayList<Surface>();
+  // The ChangeListenerS that registered their interest to be informed
+  // when the contents of the Mesh are changed (elements are added or
+  // removed)
   private final List<ChangeListener> changeListeners = new ArrayList<ChangeListener>();
 }

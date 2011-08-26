@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Color;
+import java.awt.RenderingHints;
 
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -20,6 +21,21 @@ import javax.swing.JComponent;
 
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+
+// This file is part of XS3D.
+//
+// XS3D is free software: you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Foobar is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * <p>The 3D Viewer/Renderer for the elements defined by the {@link
@@ -46,6 +62,11 @@ class Viewer3d
    **/
   public static final boolean RENDER_DRAWING_DEPTH = false;
 
+  /**
+   * Construct a Viewer3d Component whose initial viewing angle is
+   * (-1,&nbsp;3.35,&nbsp;&pi;) and initial screen position is
+   * (0,&nbsp;0,&nbsp;50) to provide an oblique view at the scene.
+   **/
   Viewer3d()
   {
     super();
@@ -61,26 +82,55 @@ class Viewer3d
     addMouseWheelListener( this );
   }
 
+  /**
+   * Add a {@link Mesh} to the scene. The scene's display will be
+   * updated at once. The Viewer3d will register itself as a {@link
+   * ChangeListener} in hopes of being notified when the Mesh changes.
+   *
+   * @param mesh The Mesh to add. It must not be null.
+   **/
   public void add( final Mesh mesh )
   {
     meshes.add( mesh );
     mesh.addChangeListener( this );
     repaint();
   }
+  /**
+   * Remove a previously added {@link Mesh} from the scene. The
+   * scene's display will be updated at once. The Viewer3d will
+   * de-register iself from the Mesh.
+   *
+   * @param mesh The Mesh to remove. It must not be null. Removing a
+   * Mesh that was not previously added (or removing it multiple times
+   * will not cause a problem).
+   **/
   public void remove( final Mesh mesh )
   {
-    meshes.remove( mesh );
     mesh.removeChangeListener( this );
+    meshes.remove( mesh );
     repaint();
   }
 
+  /**
+   * Describe to the Swing framework how large our preferred initial
+   * display should be.
+   *
+   * @return Currently hard-coded to 480&nbsp;x&nbsp;300 pixels.
+   **/
   public Dimension getPreferredSize()
   {
     return new Dimension( 480, 300 );
   }
 
   /**
-   * Set the view angle. It defaults to (-1,3.35,pi)
+   * Set the view angle which controls rotation around the vertical.
+   * It is the primary means of affecting the view, and is updated
+   * when the mouse is dragged with the left button held down.
+   *
+   * @param viewAngle The view angle, which defaults to
+   * (-1,&nbsp;3.35,&nbsp;&pi)
+   *
+   * @see #setViewAngle(double,double,double)
    **/
   public void setViewAngle( final Vector3d viewAngle )
   {
@@ -88,6 +138,17 @@ class Viewer3d
                   viewAngle.y,
                   viewAngle.z );
   }
+  /**
+   * Set the view angle which controls rotation around the vertical.
+   * It is the primary means of affecting the view, and is updated
+   * when the mouse is dragged with the left button held down.
+   *
+   * @param x The x-component of the view angle; it defaults to -1.
+   * @param y The y-component of the view angle; it defaults to 3.35.
+   * @param z The z-component of the view angle; it defaults to &pi;
+   *
+   * @see #setViewAngle(Vector3d)
+   **/
   public void setViewAngle( final double x,
                             final double y,
                             final double z )
@@ -111,7 +172,14 @@ class Viewer3d
   }
 
   /**
-   * Set the screen position. It defaults to (0,0,50).
+   * Sets the position of the screen that is mapped to the display,
+   * onto which the 3D scene is projected. Changing the z-coordinate
+   * controls the zoom level. The x and y coordinates control panning.
+   *
+   * @param screenPosition Where the viewer / screen is positioned
+   * with respect to the scene. The x and y coordinate should be
+   * centered at (0,&nbsp;0), whereas the z-coordinate should be a
+   * positive value (it defaults to 50).
    **/
   public void setScreenPosition( final Vector3d screenPosition )
   {
@@ -127,6 +195,21 @@ class Viewer3d
    * screen. This is affected by the given screen center coordinate,
    * the {@link #setViewAngle(Vector3d)} and the {@link
    * #setScreenPosition(Vector3d)}.
+   *
+   * @param xScreenCenter The horizontal center offset of the physical
+   * screen, which should be the horizontal bounds divided by 2.
+   *
+   * @param yScreenCenter The vertical center offset of the physical
+   * screen, which should be the vertical bounds divided by 2.
+   *
+   * @param point The point in 3D space to project.
+   *
+   * @return A point in 2D space, representing the (x,y) location of
+   * the 3D coordinate on the current display (it may be off-screen,
+   * though) and its depth (distance from the viewer, where a positive
+   * depth means that "in front of" and a negative depth means "behind
+   * the viewer". This depth value is used to determine visibility as
+   * well as drawing order.
    **/
   private Point2d project( final double xScreenCenter,
                            final double yScreenCenter,
@@ -156,6 +239,14 @@ class Viewer3d
     return p2d;
   }
 
+  /**
+   * Implementation of the {@link ChangeListener}, called by the Mesh
+   * when something (a point, edge, or surface) is added or removed
+   * from the Mesh. This method causes the scene to be repainted.
+   *
+   * @param e The ChangeEvent describing the change. Generally the
+   * source is one of the {@link Mesh}es added to this object.
+   **/
   public void stateChanged( final ChangeEvent e )
   {
     repaint();
@@ -165,6 +256,7 @@ class Viewer3d
    * This method is invoked by Swing whenever a repaint event is
    * handled.
    **/
+  @Override
   public void paintComponent( final Graphics g )
   {
     final Graphics2D g2 = (Graphics2D)g;
@@ -173,6 +265,12 @@ class Viewer3d
 
     g2.setColor( Color.black );
     g2.fillRect( 0, 0, bounds.width, bounds.height );
+
+    if( true ) // true: use anti-aliased drawing (tends to be slower); off by default
+      {
+        g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+                             RenderingHints.VALUE_ANTIALIAS_ON );
+      }
 
     final double xScreenCenter = bounds.width / 2.0d;
     final double yScreenCenter = bounds.height / 2.0d;
@@ -186,6 +284,7 @@ class Viewer3d
     final List<ZRef> zref = new ArrayList<ZRef>();
     for( Mesh mesh : meshes )
       {
+        // Points
         for( Mesh.Point3d p : mesh.getPoints() )
           {
             final Point2d p2d = project( xScreenCenter,
@@ -198,6 +297,8 @@ class Viewer3d
                 zref.add( new ZRef(p2d) );
               }
           }
+
+        // Edges
         for( Mesh.Edge e : mesh.getEdges() )
           {
             final Point2d p2d1 = project( xScreenCenter,
@@ -218,23 +319,27 @@ class Viewer3d
                   }
                 else
                   {
-                    // The start of the line is in front of the view,
-                    // the end of it is behind
+                    // The start of the line is in FRONT of the
+                    // viewer, but the end of it is BEHIND
 
-                    // @@@ find intersection in x,y construct a new
-                    // Point2d and store that, instead
+                    // @@@ find intersection in x,y space, construct a
+                    // new Point2d and store that as the END point,
+                    // instead (i.e. compute a clipped line)
                   }
               }
             else if( p2d2.depth > 0 )
               {
-                // The start of the line is behind the viewer, the end
-                // of it is in front
+                // The start of the line is BEHIND the viewer, the end
+                // of it is in FRONT
 
-                // @@@ find intersection in x,y construct a new
-                // Point2d and store that, instead
+                // @@@ find intersection in x,y space, construct a new
+                // Point2d and store that as the START point, instead
+                // (i.e. compute a clipped line)
               }
           }
-        nextMesh:
+
+        // Surfaces
+        nextSurface:
         for( Mesh.Surface s : mesh.getSurfaces() )
           {
             points.clear(); // start with an empty list of points
@@ -254,7 +359,7 @@ class Viewer3d
                     // surface because it gets really complicated
                     // trying to determine intersection points, and
                     // render only subsections of the surface.
-                    continue nextMesh;
+                    continue nextSurface;
                   }
                 // As our edges should be defining a CLOSED series of
                 // points, we simply capture the first point of each
@@ -304,6 +409,9 @@ class Viewer3d
    * Paints a point at the indicated Point2d (x,y) coordinate. Points
    * are rendered to appear like small spheres using concentric rings
    * of color from dark on the outer edge to white in the center.
+   *
+   * @param g2 The graphics object into which to render
+   * @param p Where to render the point
    **/
   private void paintPoint( final Graphics2D g2,
                            final Point2d p )
@@ -328,6 +436,8 @@ class Viewer3d
   /**
    * Paints a colored edge (a line between two coordinates).
    *
+   * @param g2 The graphics object into which to render
+   * @param c The color for the line
    * @param head The starting point of the edge
    * @param tail The ending point of the edge
    **/
@@ -351,6 +461,8 @@ class Viewer3d
    * Paints a color-filled surface using three or more points in 3D
    * space.
    *
+   * @param g2 The graphics object into which to render
+   * @param c The color for the surface
    * @param pN Three or more points to define the surface corners.
    **/
   private void paintSurface( final Graphics2D g2,
@@ -411,7 +523,11 @@ class Viewer3d
     final int curX = e.getX();
     final int curY = e.getY();
 
-    // Alter the view angle to affect the rotation of the view
+    // Alter the view angle to affect the rotation of the view; 0.01
+    // controls the mouse sensitivity: a smaller value requires more
+    // motion to effect a change, a larger value makes the mouse more
+    // sensitive. A value of 0.01 tends to result in fairly intuitive
+    // operations.
     setViewAngle( viewAngleX - (0.01d * (curX - mouseX)),
                   viewAngleY + (0.01d * (curY - mouseY)),
                   viewAngleZ );
@@ -425,6 +541,9 @@ class Viewer3d
   // ======================================================================
   public void mouseWheelMoved( final MouseWheelEvent e )
   {
+    // The factor of 1.1 below controls the sensitivity of the mouse
+    // wheel, determining how quickly the z-coordinate of the screen
+    // is altered.
     if( e.getWheelRotation() > 0 )
       {
         this.screenPositionZ = this.screenPositionZ * 1.1d;
@@ -435,8 +554,6 @@ class Viewer3d
       }
     repaint();
   }
-
-  private int mouseX, mouseY;
 
   /**
    * A vector in 3D space, structurally the same as a 3D coordinate.
@@ -558,27 +675,33 @@ class Viewer3d
     private double avgDepth;
   }
 
-  private int width, height;
+  // values controlling the 3D projection
   private double screenPositionX, screenPositionY, screenPositionZ;
   private double viewAngleX, viewAngleY, viewAngleZ;
   private int modelScale;
+  // values that are changed only when the viewangle is altered, and
+  // are therefore pre-computed and cached for optimal performance
   private double cosTheta, sinTheta, cosPhi, sinPhi;
   private double sinThetaSinPhi, cosThetaSinPhi, sinThetaCosPhi, cosThetaCosPhi;
+  // the last place where a mouse button was pressed or where the
+  // mouse was during a drag operation; used for computing drag
+  // offsets during scene rotation.
+  private int mouseX, mouseY;
+  // when RENDER_DRAWING_DEPTH is set to true, this counter is reset
+  // during each drawing cycle, incremented for each Mesh element that
+  // is drawn, and its value painted next to that element to provide
+  // visual feedback for the drawing order
   private int _counter;
   //
   /**
-   * Reused structure for collecting the edge points of a surface
+   * Reused structure for collecting the edge points of a surface.
    **/
   private final List<Point2d> points = new ArrayList<Point2d>();
-  /**
-   * Reused for calculating the projection of a 3D point to the screen
-   **/
-  private final Point2d point2d = new Point2d();
   /**
    * The {@link Mesh}es to be rendered.
    **/
   private final List<Mesh> meshes = new ArrayList<Mesh>();
-  //
+  // colors for drawing the little spheres to represent points
   private static final Color GRAY  = new Color( 127, 127, 127 );
   private static final Color LGRAY = new Color( 191, 191, 191 );
   private static final Color WHITE = new Color( 255, 255, 255 );

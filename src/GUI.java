@@ -8,8 +8,28 @@ import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
+// This file is part of XS3D.
+//
+// XS3D is free software: you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Foobar is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
- * The GUI component, launched by Main.
+ * The GUI component, launched by Main. It creates a {@link JFrame}
+ * and sets its content pane to a {@link Viewer3d} object. Then it
+ * builds a {@link Mesh} (so that something is displayed; you'd want
+ * to change that, maybe load a Mesh from a 3D object file somehow, in
+ * order to make this a more useful program), and adds that Mesh to
+ * the Viewer3d object.
  *
  * @author K. Udo Schuermann
  **/
@@ -23,30 +43,28 @@ class GUI
   {
     this.frame = new JFrame( "DDD" );
 
-//  Build your GUI here and finally add it to the frame's content pane
-//  this.frame.getContentPane().add( ... );
-
     final Viewer3d viewer3d = new Viewer3d();
-
-    this.frame.getContentPane().add( viewer3d );
+    this.frame.setContentPane( viewer3d );
 
     this.frame.pack();
 
-//  Adjust the initial window position and size if you like
+    // You could adjust the initial window position and size if you like
 
     this.frame.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
     this.frame.addWindowListener( new WindowAdapter()
       {
         public void windowClosing( final WindowEvent e )
           {
-            // Save the window position and size for next time
-            // and shutdown
+            // You could save the window position and size for next
+            // time, if you like
             System.exit( 0 );
           }
       } );
     this.frame.setVisible( true );
 
     // ======================================================================
+
+    System.err.println( "GUI is building something simple to display.\n" );
 
     // An arrangement of points in 3D space
     final Mesh.Point3d p0 = new Mesh.Point3d(-1,-1,-1);
@@ -69,33 +87,41 @@ class GUI
     final Mesh.Edge e6 = new Mesh.Edge( Color.yellow, p6, p7 );
     final Mesh.Edge e7 = new Mesh.Edge( Color.yellow, p7, p4 );
 
-    // Collect some of the edges into surfaces
+    // Collect the edges into surfaces
     final Mesh.Surface s0 = new Mesh.Surface( Color.green, e0, e1, e2, e3 );
     final Mesh.Surface s1 = new Mesh.Surface( Color.blue,  e4, e5, e6, e7 );
 
-    // And finally construct the Mesh by adding all these points,
-    // edges, and surfaces to it.
     final Mesh mesh = new Mesh();
-    mesh.add( p1 );
-    mesh.add( p2 );
-    mesh.add( p3 );
-    mesh.add( p4 );
-    mesh.add( p5 );
-    mesh.add( p6 );
-    mesh.add( p7 );
+    if( true ) // true: add the points to be rendered
+      {
+        mesh.add( p1 );
+        mesh.add( p2 );
+        mesh.add( p3 );
 
-    mesh.add( e0 );
-    mesh.add( e1 );
-    mesh.add( e2 );
-    mesh.add( e3 );
+        mesh.add( p4 );
+        mesh.add( p5 );
+        mesh.add( p6 );
+        mesh.add( p7 );
+      }
 
-    mesh.add( e4 );
-    mesh.add( e5 );
-    mesh.add( e6 );
-    mesh.add( e7 );
+    if( true ) // true: add the edges to be rendered
+      {
+        mesh.add( e0 );
+        mesh.add( e1 );
+        mesh.add( e2 );
+        mesh.add( e3 );
 
-    mesh.add( s0 );
-    mesh.add( s1 );
+        mesh.add( e4 );
+        mesh.add( e5 );
+        mesh.add( e6 );
+        mesh.add( e7 );
+      }
+
+    if( true ) // true: add the surfaces to be rendered
+      {
+        mesh.add( s0 );
+        mesh.add( s1 );
+      }
 
     // Add the Mesh to the viewer and voilá, instant 3D
     viewer3d.add( mesh );
