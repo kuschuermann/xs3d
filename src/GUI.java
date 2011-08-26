@@ -41,7 +41,7 @@ class GUI
   // ==============================
   public void run()
   {
-    this.frame = new JFrame( "DDD" );
+    this.frame = new JFrame( "XS3D" );
 
     final Viewer3d viewer3d = new Viewer3d();
     this.frame.setContentPane( viewer3d );
