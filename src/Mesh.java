@@ -1,3 +1,5 @@
+package com.ringlord.xs3d;
+
 import java.awt.Color;
 
 import java.util.Collection;

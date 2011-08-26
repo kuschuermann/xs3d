@@ -7,7 +7,8 @@
 project-name=XS3D
 project-is-war=false
 executable-file=xs3d
-main-class=Main
+main-class=com.ringlord.xs3d.Main
+default-source-version=1.5
 default-java-version=1.5
 repackage-libs=false
 include-lib=false
@@ -20,6 +21,7 @@ svn-support=false
 create-skeleton=true
 sign-executable=false
 sign-libraries=false
+sign-main-jar=false
 sign-properties-file=
 jaxb-support=false
 path-src=src

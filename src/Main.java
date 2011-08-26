@@ -1,4 +1,4 @@
-// package net.example.project;
+package com.ringlord.xs3d;
 
 import java.awt.HeadlessException;
 
