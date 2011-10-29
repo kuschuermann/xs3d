@@ -230,11 +230,11 @@ class Viewer3d
                        (px * sinThetaCosPhi) +
                        (py * cosThetaCosPhi) -
                        (pz * sinPhi)));
-    final double temp = viewAngleZ / z;
+    final double temp = modelScale * (viewAngleZ / z);
 
     final Point2d p2d = new Point2d();
-    p2d.set( (int)(xScreenCenter + modelScale * temp * x),
-             (int)(yScreenCenter - modelScale * temp * y),
+    p2d.set( (int)(xScreenCenter + (temp * x)),
+             (int)(yScreenCenter - (temp * y)),
              z ); // z is the distance from the viewer
     return p2d;
   }
