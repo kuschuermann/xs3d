@@ -63,6 +63,16 @@ class Viewer3d
   public static final boolean RENDER_DRAWING_DEPTH = false;
 
   /**
+   * Indicates whether to use anti-aliased rendering, which creates
+   * the illusion of smoother lines at the cost of filling pixels with
+   * a blend of color where the displayed element would only occupy a
+   * part of a pixel. Anti-aliased rendering is generally slower than
+   * non-AA rendering, but on modern 3D hardware the difference may be
+   * small enough that the gain in smoothness is worth it.
+   **/
+  public static final boolean RENDER_ANTI_ALIASED  = true;
+
+  /**
    * Construct a Viewer3d Component whose initial viewing angle is
    * (-1,&nbsp;3.35,&nbsp;&pi;) and initial screen position is
    * (0,&nbsp;0,&nbsp;50) to provide an oblique view at the scene.
@@ -85,7 +95,9 @@ class Viewer3d
   /**
    * Add a {@link Mesh} to the scene. The scene's display will be
    * updated at once. The Viewer3d will register itself as a {@link
-   * ChangeListener} in hopes of being notified when the Mesh changes.
+   * ChangeListener} on the Mesh so that the Viewer3d will be notified
+   * when the Mesh changes, and can show changes to the Mesh as they
+   * happen.
    *
    * @param mesh The Mesh to add. It must not be null.
    **/
@@ -153,7 +165,7 @@ class Viewer3d
                             final double y,
                             final double z )
   {
-    // precalculate the values needed by the project method
+    // precalculate the values needed by the 'project' method
     this.cosTheta = Math.cos( x );
     this.sinTheta = Math.sin( x );
     this.cosPhi = Math.cos( y );
@@ -266,7 +278,7 @@ class Viewer3d
     g2.setColor( Color.black );
     g2.fillRect( 0, 0, bounds.width, bounds.height );
 
-    if( true ) // true: use anti-aliased drawing (tends to be slower); off by default
+    if( RENDER_ANTI_ALIASED ) // use anti-aliased drawing? (tends to be slower)
       {
         g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                              RenderingHints.VALUE_ANTIALIAS_ON );
@@ -376,7 +388,7 @@ class Viewer3d
       }
 
     // Time to sort the ZRef: The Comparator for the ZRef causes the
-    // elements farthest away to be ordered first int the list
+    // elements farthest away to be ordered first in the list
     Collections.sort( zref );
 
     if( RENDER_DRAWING_DEPTH )
@@ -390,15 +402,15 @@ class Viewer3d
     for( ZRef z : zref )
       {
         final Point2d[] points = z.get();
-        if( points.length == 1 )
+        if( points.length == 1 )                // 1 point is a point
           {
             paintPoint( g2, points[0] );
           }
-        else if( points.length == 2 )
+        else if( points.length == 2 )           // 2 points is an edge
           {
             paintEdge( g2, z.getColor(), points[0], points[1] );
           }
-        else
+        else                                    // 3+ points is a surface
           {
             paintSurface( g2, z.getColor(), points );
           }
@@ -604,7 +616,7 @@ class Viewer3d
   /**
    * A ZRef references one or more coordinates (and associated color
    * where applicable) for points, edges, and surfaces. The important
-   * feature here is that we've already calculated whereon the screen
+   * feature here is that we've already calculated where on the screen
    * these points are to be displayed, so we don't need to recalculate
    * that information. If our Mesh elements (Point, Edge, Surface) had
    * more attributes, then we might want to reference them directly

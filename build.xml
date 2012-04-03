@@ -95,6 +95,8 @@
 			index="false"><!-- index='false' allows external JARs to be found -->
 			<fileset dir="${build-dir}" includes="**/*.class"/>
 			<fileset dir="." includes="LICENSE.TXT"/>
+			<fileset dir="." includes="README.text"/>
+                        <fileset dir="." includes="ChangeLog"/>
 			<fileset dir="." includes="${src-dir}/**/*.java"/>
 			<fileset dir="." includes="build.xml"/>
 		</jar>
@@ -133,7 +135,9 @@
 					dirmode="750"
 					username="${user.name}"
 					group="xs3d">
+				<include name="LICENSE.TXT"/>
 				<include name="README.text"/>
+                                <include name="ChangeLog"/>
 				<include name="*.od?"/>
 				<include name="*.pdf"/>
 				<include name="build.xml"/>

@@ -1,0 +1,14 @@
+2012-04-03	K Udo Schuermann <udo.schuermann@gmail.com>
+
+	* Viewer3d.java: Improved in-source documentation, broke out
+	anti-aliasing option as a static final with documentation at the
+	top of the file.
+
+	* GUI.java: Improved in-source documetationa.
+
+	* build.xml: The README.text and ChangeLog files are now included
+	in the xs3d.jar when it is built.
+
+Copyright 1997, 1998 Free Software Foundation, Inc.
+Copying and distribution of this file, with or without modification, are
+permitted provided the copyright notice and this notice are preserved.

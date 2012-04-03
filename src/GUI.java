@@ -92,7 +92,8 @@ class GUI
     final Mesh.Surface s1 = new Mesh.Surface( Color.blue,  e4, e5, e6, e7 );
 
     final Mesh mesh = new Mesh();
-    if( true ) // true: add the points to be rendered
+    // true: add the points so that representations of points are rendered (as little spheres)
+    if( true )
       {
         mesh.add( p1 );
         mesh.add( p2 );
@@ -104,7 +105,8 @@ class GUI
         mesh.add( p7 );
       }
 
-    if( true ) // true: add the edges to be rendered
+    // true: add the edges so that representations of edges are rendered (as lines)
+    if( true )
       {
         mesh.add( e0 );
         mesh.add( e1 );
@@ -117,7 +119,8 @@ class GUI
         mesh.add( e7 );
       }
 
-    if( true ) // true: add the surfaces to be rendered
+    // true: add the surfaces so that surfaces are rendered (filled with solid color)
+    if( true )
       {
         mesh.add( s0 );
         mesh.add( s1 );
