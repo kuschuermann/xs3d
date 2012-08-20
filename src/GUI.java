@@ -95,6 +95,7 @@ class GUI
     // true: add the points so that representations of points are rendered (as little spheres)
     if( true )
       {
+        mesh.add( p0 );
         mesh.add( p1 );
         mesh.add( p2 );
         mesh.add( p3 );

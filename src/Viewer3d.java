@@ -73,6 +73,13 @@ class Viewer3d
   public static final boolean RENDER_ANTI_ALIASED  = true;
 
   /**
+   * Indicates whether points are drawn as little spheres (true) or
+   * not at all (false). Setting this value to true makes for a less
+   * "realistic" visual representation but certainly has its uses.
+   **/
+  public static final boolean RENDER_POINTS = true;
+
+  /**
    * Construct a Viewer3d Component whose initial viewing angle is
    * (-1,&nbsp;3.35,&nbsp;&pi;) and initial screen position is
    * (0,&nbsp;0,&nbsp;50) to provide an oblique view at the scene.
@@ -404,7 +411,10 @@ class Viewer3d
         final Point2d[] points = z.get();
         if( points.length == 1 )                // 1 point is a point
           {
-            paintPoint( g2, points[0] );
+            if( RENDER_POINTS )
+              {
+                paintPoint( g2, points[0] );
+              }
           }
         else if( points.length == 2 )           // 2 points is an edge
           {
