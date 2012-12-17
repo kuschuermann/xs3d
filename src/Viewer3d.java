@@ -7,12 +7,6 @@ import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.RenderingHints;
 
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelListener;
-import java.awt.event.MouseWheelEvent;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
@@ -49,10 +43,7 @@ import javax.swing.event.ChangeEvent;
  **/
 class Viewer3d
   extends JComponent
-  implements ChangeListener,
-             MouseListener,
-             MouseMotionListener,
-             MouseWheelListener
+  implements ChangeListener
 {
   /**
    * Indicates whether to render a numeric count (starting at 1) near
@@ -93,10 +84,6 @@ class Viewer3d
     this.modelScale = 1000; // a fudge factor to control distortion
 
     setOpaque( true );
-
-    addMouseListener( this );
-    addMouseMotionListener( this );
-    addMouseWheelListener( this );
   }
 
   /**
@@ -111,6 +98,7 @@ class Viewer3d
   public void add( final Mesh mesh )
   {
     meshes.add( mesh );
+    meshArray = null;
     mesh.addChangeListener( this );
     repaint();
   }
@@ -127,7 +115,18 @@ class Viewer3d
   {
     mesh.removeChangeListener( this );
     meshes.remove( mesh );
+    meshArray = null;
     repaint();
+  }
+
+  public Mesh[] meshes()
+  {
+    if( meshArray == null )
+      {
+        meshArray = new Mesh[ meshes.size() ];
+        meshes.toArray( meshArray );
+      }
+    return meshArray;
   }
 
   /**
@@ -189,6 +188,18 @@ class Viewer3d
 
     repaint();
   }
+  public double getViewAngleX()
+  {
+    return viewAngleX;
+  }
+  public double getViewAngleY()
+  {
+    return viewAngleY;
+  }
+  public double getViewAngleZ()
+  {
+    return viewAngleZ;
+  }
 
   /**
    * Sets the position of the screen that is mapped to the display,
@@ -206,6 +217,15 @@ class Viewer3d
     this.screenPositionY = screenPosition.y;
     this.screenPositionZ = screenPosition.z;
 
+    repaint();
+  }
+  public double getScreenPositionZ()
+  {
+    return screenPositionZ;
+  }
+  public void setScreenPositionZ( final double screenPositionZ )
+  {
+    this.screenPositionZ = screenPositionZ;
     repaint();
   }
 
@@ -278,6 +298,8 @@ class Viewer3d
   @Override
   public void paintComponent( final Graphics g )
   {
+    final long startTime = System.nanoTime();
+
     final Graphics2D g2 = (Graphics2D)g;
 
     final Rectangle bounds = getBounds();
@@ -301,7 +323,7 @@ class Viewer3d
     // Mesh (in the loop below) but we'll do it in a "natural" order,
     // points first, edges next, and faces last.
     final List<ZRef> zref = new ArrayList<ZRef>();
-    for( Mesh mesh : meshes )
+    for( Mesh mesh : meshes() )
       {
         // Points
         for( Mesh.Point3d p : mesh.points() )
@@ -425,6 +447,9 @@ class Viewer3d
             paintFace( g2, z.getColor(), points );
           }
       }
+
+    long nanos = (System.nanoTime() - startTime);
+    System.err.print( String.format("\r%1.2f",1000000000.0d / nanos) );
   }
 
   /**
@@ -511,70 +536,6 @@ class Viewer3d
         // find the center of the face, drawString ++_counter there
         // (as in paintPoint and paintEdge above)
       }
-  }
-
-  // ======================================================================
-  // MouseListener
-  // ======================================================================
-  public void mouseEntered( final MouseEvent e)
-  {
-  }
-  public void mouseExited( final MouseEvent e)
-  {
-  }
-  public void mousePressed( final MouseEvent e )
-  {
-    mouseX = e.getX();
-    mouseY = e.getY();
-  }
-  public void mouseReleased( final MouseEvent e )
-  {
-  }
-  public void mouseClicked( final MouseEvent e)
-  {
-  }
-
-  // ======================================================================
-  // MouseMotionListener
-  // ======================================================================
-  public void mouseMoved( final MouseEvent e )
-  {
-  }
-  public void mouseDragged( final MouseEvent e )
-  {
-    final int curX = e.getX();
-    final int curY = e.getY();
-
-    // Alter the view angle to affect the rotation of the view; 0.01
-    // controls the mouse sensitivity: a smaller value requires more
-    // motion to effect a change, a larger value makes the mouse more
-    // sensitive. A value of 0.01 tends to result in fairly intuitive
-    // operations.
-    setViewAngle( viewAngleX - (0.01d * (curX - mouseX)),
-                  viewAngleY + (0.01d * (curY - mouseY)),
-                  viewAngleZ );
-
-    mouseX = curX;
-    mouseY = curY;
-  }
-
-  // ======================================================================
-  // MouseWheelListener
-  // ======================================================================
-  public void mouseWheelMoved( final MouseWheelEvent e )
-  {
-    // The factor of 1.1 below controls the sensitivity of the mouse
-    // wheel, determining how quickly the z-coordinate of the screen
-    // is altered.
-    if( e.getWheelRotation() > 0 )
-      {
-        this.screenPositionZ = this.screenPositionZ * 1.1d;
-      }
-    else
-      {
-        this.screenPositionZ = this.screenPositionZ / 1.1d;
-      }
-    repaint();
   }
 
   /**
@@ -705,10 +666,6 @@ class Viewer3d
   // are therefore pre-computed and cached for optimal performance
   private double cosTheta, sinTheta, cosPhi, sinPhi;
   private double sinThetaSinPhi, cosThetaSinPhi, sinThetaCosPhi, cosThetaCosPhi;
-  // the last place where a mouse button was pressed or where the
-  // mouse was during a drag operation; used for computing drag
-  // offsets during scene rotation.
-  private int mouseX, mouseY;
   // when RENDER_DRAWING_DEPTH is set to true, this counter is reset
   // during each drawing cycle, incremented for each Mesh element that
   // is drawn, and its value painted next to that element to provide
@@ -722,6 +679,7 @@ class Viewer3d
   /**
    * The {@link Mesh}es to be rendered.
    **/
+  private Mesh[] meshArray;
   private final List<Mesh> meshes = new ArrayList<Mesh>();
   // colors for drawing the little spheres to represent points
   private static final Color GRAY  = new Color( 127, 127, 127 );
