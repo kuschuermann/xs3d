@@ -1,7 +1,7 @@
 * TODO Add an OBJ loader and accept .obj files from cmd line
 * TODO Add a version number to the code
 Current version is implied to be 1.0
-* TODO Optimize surface painting
-** TODO Mark surfaces as either one or two sided
-** TODO Compute the normal for any surface
+* TODO Optimize face painting
+** TODO Mark faces as either one or two sided
+** TODO Compute the normal for any face
 ** TODO Fill only if (a) two-sided OR (b) the the normal points at viewer

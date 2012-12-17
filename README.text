@@ -1,15 +1,16 @@
 ----------------------------------------------------------------------
 XS3D: The Extremely Simple 3D Rendering Engine
-Copyright (C) 2011 K. Udo Schuermann
+Copyright (C) 2011,2012 K. Udo Schuermann
 Licensed under the GNU General Public License v3 or later
 ----------------------------------------------------------------------
 
 This engine supports the rendering of points (as tiny spheres), edges
-(connecting two points), and surfaces (formed by three or more edges).
-If any part of a compound element (line or surface) falls behind the
+(connecting two points), and faces (formed by three or more edges).
+If any part of a compound element (edge or face) falls behind the
 viewer, no part of it is rendered because the engine performs z-buffer
 sorting at an object, rather than the pixel-level, and cannot clip the
-display using a pixel-level z-buffer.
+display using a pixel-level z-buffer. Objects are drawn from the back
+to the front. There is no hidden surface removal.
 
 Please note that there are plenty of 3D engines out there (Irrlicht
 and JMonkeyEngine, for example, or the venerable Java3D) which are to
@@ -23,5 +24,24 @@ rendering engine!
 
 --Udo Schuermann
 (August 2011)
+
+
+QUICK START
+
+The Mesh class represents a 3D object. It contains the following:
+
+Mesh.Point3d	— A single point in 3D space
+Mesh.Edge	— A line connecting two Point3d; color may be null
+Mesh.Face	— A colored surface consisting of 3+ Edges
+
+Create Point3d objects, combine pairs of them into Edges, and then
+combine three (or more) Edges into Faces (the edges must connect).
+Finally, create a Mesh based on Faces. You can also create a Mesh
+based only on edges, or a Mesh based only on Point3d objects, with
+no faces at all. Experiment!
+
+Hold down (any) mouse button and drag to rotate around the z-axis.
+
+Use the mouse wheel to zoom in/out of the center (0,0,0) position.
 
 #eot
