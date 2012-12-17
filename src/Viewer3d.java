@@ -56,7 +56,7 @@ class Viewer3d
 {
   /**
    * Indicates whether to render a numeric count (starting at 1) near
-   * points, edges, and surfaces as they are being rendered from the
+   * points, edges, and faces as they are being rendered from the
    * rear-most to the front, to help identify the drawing order of
    * {@link Mesh} elements.
    **/
@@ -260,7 +260,7 @@ class Viewer3d
 
   /**
    * Implementation of the {@link ChangeListener}, called by the Mesh
-   * when something (a point, edge, or surface) is added or removed
+   * when something (a point, edge, or face) is added or removed
    * from the Mesh. This method causes the scene to be repainted.
    *
    * @param e The ChangeEvent describing the change. Generally the
@@ -296,15 +296,15 @@ class Viewer3d
 
     // Collect ZRef objects which we can sort to ensure drawing from
     // back to front, and therefore effect proper depth perception,
-    // especially when it comes to surfaces. It doesn't matter in
-    // which order we process the points, edges, and surfaces of a
+    // especially when it comes to faces. It doesn't matter in
+    // which order we process the points, edges, and faces of a
     // Mesh (in the loop below) but we'll do it in a "natural" order,
-    // points first, edges next, and surfaces last.
+    // points first, edges next, and faces last.
     final List<ZRef> zref = new ArrayList<ZRef>();
     for( Mesh mesh : meshes )
       {
         // Points
-        for( Mesh.Point3d p : mesh.getPoints() )
+        for( Mesh.Point3d p : mesh.points() )
           {
             final Point2d p2d = project( xScreenCenter,
                                          yScreenCenter,
@@ -318,7 +318,7 @@ class Viewer3d
           }
 
         // Edges
-        for( Mesh.Edge e : mesh.getEdges() )
+        for( Mesh.Edge e : mesh.edges() )
           {
             final Point2d p2d1 = project( xScreenCenter,
                                           yScreenCenter,
@@ -357,12 +357,12 @@ class Viewer3d
               }
           }
 
-        // Surfaces
-        nextSurface:
-        for( Mesh.Surface s : mesh.getSurfaces() )
+        // Faces
+        nextFace:
+        for( Mesh.Face f : mesh.faces() )
           {
             points.clear(); // start with an empty list of points
-            for( Mesh.Edge e : s )
+            for( Mesh.Edge e : f.edges() )
               {
                 final Point2d p2d1 = project( xScreenCenter,
                                               yScreenCenter,
@@ -375,10 +375,10 @@ class Viewer3d
                   {
                     // One or both points of this edge lies behind the
                     // viewer, so let's not render any part of the
-                    // surface because it gets really complicated
+                    // face because it gets really complicated
                     // trying to determine intersection points, and
-                    // render only subsections of the surface.
-                    continue nextSurface;
+                    // render only subsections of the face.
+                    continue nextFace;
                   }
                 // As our edges should be defining a CLOSED series of
                 // points, we simply capture the first point of each
@@ -387,10 +387,10 @@ class Viewer3d
               }
             // If we got here then we didn't do a 'continue nextMesh'
             // in the loop above, meaning that we have a full set of
-            // at least 3 points now to enclose the surface.
+            // at least 3 points now to enclose the face.
             final Point2d[] pointList = new Point2d[ points.size() ];
             points.toArray( pointList );
-            zref.add( new ZRef(s.getColor(),pointList) );
+            zref.add( new ZRef(f.getColor(),pointList) );
           }
       }
 
@@ -405,7 +405,7 @@ class Viewer3d
 
     // Render each of the elements in the ZRef structure. The number
     // of points referenced determines whether it's a point (1), an
-    // edge (2), or a surface (3+).
+    // edge (2), or a face (3+).
     for( ZRef z : zref )
       {
         final Point2d[] points = z.get();
@@ -420,9 +420,9 @@ class Viewer3d
           {
             paintEdge( g2, z.getColor(), points[0], points[1] );
           }
-        else                                    // 3+ points is a surface
+        else                                    // 3+ points is a face
           {
-            paintSurface( g2, z.getColor(), points );
+            paintFace( g2, z.getColor(), points );
           }
       }
   }
@@ -480,14 +480,14 @@ class Viewer3d
   }
 
   /**
-   * Paints a color-filled surface using three or more points in 3D
+   * Paints a color-filled face using three or more points in 3D
    * space.
    *
    * @param g2 The graphics object into which to render
-   * @param c The color for the surface
-   * @param pN Three or more points to define the surface corners.
+   * @param c The color for the face
+   * @param pN Three or more points to define the face corners.
    **/
-  private void paintSurface( final Graphics2D g2,
+  private void paintFace( final Graphics2D g2,
                              final Color c,
                              final Point2d[] pN )
   {
@@ -508,7 +508,7 @@ class Viewer3d
 
     if( RENDER_DRAWING_DEPTH )
       {
-        // find the center of the surface, drawString ++_counter there
+        // find the center of the face, drawString ++_counter there
         // (as in paintPoint and paintEdge above)
       }
   }
@@ -625,10 +625,10 @@ class Viewer3d
 
   /**
    * A ZRef references one or more coordinates (and associated color
-   * where applicable) for points, edges, and surfaces. The important
+   * where applicable) for points, edges, and faces. The important
    * feature here is that we've already calculated where on the screen
    * these points are to be displayed, so we don't need to recalculate
-   * that information. If our Mesh elements (Point, Edge, Surface) had
+   * that information. If our Mesh elements (Point, Edge, Face) had
    * more attributes, then we might want to reference them directly
    * here, but for now capturing their color is all we need here.
    **/
@@ -716,7 +716,7 @@ class Viewer3d
   private int _counter;
   //
   /**
-   * Reused structure for collecting the edge points of a surface.
+   * Reused structure for collecting the edge points of a face.
    **/
   private final List<Point2d> points = new ArrayList<Point2d>();
   /**

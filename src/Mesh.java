@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.util.Collection;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
@@ -27,14 +26,14 @@ import javax.swing.event.ChangeEvent;
 
 /**
  * <p>A mesh consisting of {@link Point}S, {@link Edge}S, and {@link
- * Surface}S. Edges connect two points. Surfaces are bounded by three
+ * Face}S. Edges connect two points. Faces are bounded by three
  * or more (3+) edges.</p>
  *
  * <p>It is not necessary to add the points to the Mesh that form the
  * end points of a Mesh, or add the edges to a Mesh that form the
- * bounds of a Surface.</p>
+ * bounds of a Face.</p>
  *
- * <p>Edges and Surfaces have color. Points do not (currently) define
+ * <p>Edges and Faces have color. Points do not (currently) define
  * a color. Exercise for the aspiring programmer: Add a fourth class
  * that (maybe extends Point) but is rendered with a custom drawing
  * routine (in Viewer3d).</p>
@@ -45,7 +44,7 @@ public class Mesh
 {
   /**
    * <p>Add a {@link ChangeListener} to be notified when any Mesh
-   * element (point, edge, or surface) is added to or removed from the
+   * element (point, edge, or face) is added to or removed from the
    * Mesh.</p>
    *
    * <p>The {@link Viewer3d} registers itself as a ChangeListener so
@@ -77,9 +76,10 @@ public class Mesh
   public void remove( final Point3d p )
   {
     points.remove( p );
+    pointArray = null;
 
     List<Edge> destroyedEdges = null;
-    List<Surface> destroyedSurfaces = null;
+    List<Face> destroyedFaces = null;
     for( Edge e : edges )
       {
         if( (p == e.getHead()) ||
@@ -91,7 +91,7 @@ public class Mesh
               }
             destroyedEdges.add( e );
 
-            for( Surface s : surfaces )
+            for( Face s : faces )
               {
                 if( s.contains(e) )
                   {
@@ -101,11 +101,11 @@ public class Mesh
                       }
                     else
                       {
-                        if( destroyedSurfaces == null )
+                        if( destroyedFaces == null )
                           {
-                            destroyedSurfaces = new ArrayList<Surface>();
+                            destroyedFaces = new ArrayList<Face>();
                           }
-                        destroyedSurfaces.add( s );
+                        destroyedFaces.add( s );
                       }
                   }
               }
@@ -118,13 +118,15 @@ public class Mesh
           {
             edges.remove( e );
           }
+        edgeArray = null;
       }
-    if( destroyedSurfaces != null )
+    if( destroyedFaces != null )
       {
-        for( Surface s : destroyedSurfaces )
+        for( Face s : destroyedFaces )
           {
-            surfaces.remove( s );
+            faces.remove( s );
           }
+        faceArray = null;
       }
     notifyChangeListeners();
   }
@@ -144,8 +146,8 @@ public class Mesh
   {
     edges.remove( e );
 
-    List<Surface> destroyedSurfaces = null;
-    for( Surface s : surfaces )
+    List<Face> destroyedFaces = null;
+    for( Face s : faces )
       {
         if( s.contains(e) )
           {
@@ -155,53 +157,68 @@ public class Mesh
               }
             else
               {
-                if( destroyedSurfaces == null )
+                if( destroyedFaces == null )
                   {
-                    destroyedSurfaces = new ArrayList<Surface>();
+                    destroyedFaces = new ArrayList<Face>();
                   }
-                destroyedSurfaces.add( s );
+                destroyedFaces.add( s );
               }
           }
       }
 
-    if( destroyedSurfaces != null )
+    if( destroyedFaces != null )
       {
-        for( Surface s : destroyedSurfaces )
+        for( Face s : destroyedFaces )
           {
-            surfaces.remove( s );
+            faces.remove( s );
           }
       }
     notifyChangeListeners();
   }
 
   /**
-   * Add a Surface to the Mesh.
+   * Add a Face to the Mesh.
    **/
-  public void add( final Surface s )
+  public void add( final Face s )
   {
-    surfaces.add( s );
+    faces.add( s );
     notifyChangeListeners();
   }
   /**
-   * Remove a Surface from the Mesh.
+   * Remove a Face from the Mesh.
    **/
-  public void remove( final Surface s )
+  public void remove( final Face s )
   {
-    surfaces.remove( s );
+    faces.remove( s );
     notifyChangeListeners();
   }
 
-  public Collection<Point3d> getPoints()
+  public Point3d[] points()
   {
-    return points;
+    if( pointArray == null )
+      {
+        pointArray = new Point3d[ points.size() ];
+        points.toArray( pointArray );
+      }
+    return pointArray;
   }
-  public Collection<Edge> getEdges()
+  public Edge[] edges()
   {
-    return edges;
+    if( edgeArray == null )
+      {
+        edgeArray = new Edge[ edges.size() ];
+        edges.toArray( edgeArray );
+      }
+    return edgeArray;
   }
-  public Collection<Surface> getSurfaces()
+  public Face[] faces()
   {
-    return surfaces;
+    if( faceArray == null )
+      {
+        faceArray = new Face[ faces.size() ];
+        faces.toArray( faceArray );
+      }
+    return faceArray;
   }
 
 
@@ -215,7 +232,7 @@ public class Mesh
   }
 
   // ======================================================================
-  // Nested classes (Point3d, Edge, Surface)
+  // Nested classes (Point3d, Edge, Face)
   // ======================================================================
 
   /**
@@ -231,9 +248,7 @@ public class Mesh
                     final double z )
     {
       super();
-      this.x = x;
-      this.y = y;
-      this.z = z;
+      setXYZ( x, y, z );
     }
     public double getX()
     {
@@ -246,6 +261,14 @@ public class Mesh
     public double getZ()
     {
       return z;
+    }
+    public void setXYZ( final double x,
+                        final double y,
+                        final double z )
+    {
+      this.x = x;
+      this.y = y;
+      this.z = z;
     }
     public void setX( final double x )
     {
@@ -299,20 +322,19 @@ public class Mesh
   }
 
   /**
-   * A colored surface in 3D space defined by 3 or more {@link Edge}S.
+   * A colored face in 3D space defined by 3 or more {@link Edge}S.
    *
    * @author K. Udo Schuermann
    **/
-  public static class Surface
-    implements Iterable<Edge>
+  public static class Face
   {
-    public Surface( final Color color,
-                    final Edge ... edges )
+    public Face( final Color color,
+                 final Edge ... edges )
     {
       super();
       if( edges.length < 3 )
         {
-          throw new IllegalArgumentException( "Surfaces must have at least 3 edges" );
+          throw new IllegalArgumentException( "Faces must have at least 3 edges" );
         }
       this.color = color;
       for( Edge e : edges )
@@ -320,13 +342,13 @@ public class Mesh
           add( e );
         }
     }
-    Surface( final Color color,
+    Face( final Color color,
              final List<Edge> edges )
     {
       super();
       if( edges.size() < 3 )
         {
-          throw new IllegalArgumentException( "Surfaces must have at least 3 edges" );
+          throw new IllegalArgumentException( "Faces must have at least 3 edges" );
         }
       this.color = color;
       for( Edge e : edges )
@@ -340,6 +362,7 @@ public class Mesh
           (edges.get( edges.size() - 1 ).getTail() == edge.getHead()) )
         {
           edges.add( edge );
+          edgeArray = null;
         }
       else
         {
@@ -351,6 +374,7 @@ public class Mesh
       if( edges.size() > 3 )
         {
           edges.remove( edge );
+          edgeArray = null;
         }
       else
         {
@@ -373,18 +397,29 @@ public class Mesh
     {
       return edges.size();
     }
-    public Iterator<Edge> iterator()
-      {
-        return edges.iterator();
-      }
+    public Edge[] edges()
+    {
+      if( edgeArray == null )
+        {
+          edgeArray = new Edge[ edges.size() ];
+          edges.toArray( edgeArray );
+        }
+      return edgeArray;
+    }
     private Color color;
+    private Edge[] edgeArray;
     private final List<Edge> edges = new ArrayList<Edge>();
   }
 
-  // The structures (points, edges, surfaces) contained by the Mesh
+  // The structures (points, edges, faces) contained by the Mesh
+  //
+  private Point3d[] pointArray;
+  private Edge[] edgeArray;
+  private Face[] faceArray;
+  //
   private final List<Point3d> points = new ArrayList<Point3d>();
   private final List<Edge> edges = new ArrayList<Edge>();
-  private final List<Surface> surfaces = new ArrayList<Surface>();
+  private final List<Face> faces = new ArrayList<Face>();
   // The ChangeListenerS that registered their interest to be informed
   // when the contents of the Mesh are changed (elements are added or
   // removed)
