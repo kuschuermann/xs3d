@@ -80,6 +80,10 @@ class GUI
 
     System.err.println( "GUI is building something simple to display.\n" );
 
+    final Mesh.Coloring edgeColoring  = new Mesh.Coloring( Color.gray, Color.yellow, Color.red );
+    final Mesh.Coloring faceColoring0 = new Mesh.Coloring( Color.green, Color.yellow, Color.red );
+    final Mesh.Coloring faceColoring1 = new Mesh.Coloring( Color.blue,  Color.yellow, Color.red );
+
     // An arrangement of points in 3D space
     final Mesh.Point3d p0 = new Mesh.Point3d(-1,-1,-1);
     final Mesh.Point3d p1 = new Mesh.Point3d(-1,-1, 1);
@@ -91,19 +95,19 @@ class GUI
     final Mesh.Point3d p7 = new Mesh.Point3d( 1, 1, 1);
 
     // Connect some of the points into edges
-    final Mesh.Edge e0 = new Mesh.Edge( Color.red, p0, p1 );
-    final Mesh.Edge e1 = new Mesh.Edge( Color.red, p1, p2 );
-    final Mesh.Edge e2 = new Mesh.Edge( Color.red, p2, p3 );
-    final Mesh.Edge e3 = new Mesh.Edge( Color.red, p3, p0 );
+    final Mesh.Edge e0 = new Mesh.Edge( edgeColoring, p0, p1 );
+    final Mesh.Edge e1 = new Mesh.Edge( edgeColoring, p1, p2 );
+    final Mesh.Edge e2 = new Mesh.Edge( edgeColoring, p2, p3 );
+    final Mesh.Edge e3 = new Mesh.Edge( edgeColoring, p3, p0 );
 
-    final Mesh.Edge e4 = new Mesh.Edge( Color.yellow, p4, p5 );
-    final Mesh.Edge e5 = new Mesh.Edge( Color.yellow, p5, p6 );
-    final Mesh.Edge e6 = new Mesh.Edge( Color.yellow, p6, p7 );
-    final Mesh.Edge e7 = new Mesh.Edge( Color.yellow, p7, p4 );
+    final Mesh.Edge e4 = new Mesh.Edge( edgeColoring, p4, p5 );
+    final Mesh.Edge e5 = new Mesh.Edge( edgeColoring, p5, p6 );
+    final Mesh.Edge e6 = new Mesh.Edge( edgeColoring, p6, p7 );
+    final Mesh.Edge e7 = new Mesh.Edge( edgeColoring, p7, p4 );
 
     // Collect the edges into surfaces
-    final Mesh.Face s0 = new Mesh.Face( Color.green, e0, e1, e2, e3 );
-    final Mesh.Face s1 = new Mesh.Face( Color.blue,  e4, e5, e6, e7 );
+    final Mesh.Face s0 = new Mesh.Face( faceColoring0, e0, e1, e2, e3 );
+    final Mesh.Face s1 = new Mesh.Face( faceColoring1,  e4, e5, e6, e7 );
 
     final Mesh mesh0 = new Mesh();
     final Mesh mesh1 = new Mesh();

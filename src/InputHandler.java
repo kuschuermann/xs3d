@@ -74,10 +74,31 @@ public class InputHandler
   @Override
   public void mouseReleased( final MouseEvent e )
   {
+    testFocus();
   }
   @Override
-  public void mouseClicked( final MouseEvent e)
+  public void mouseClicked( final MouseEvent ev )
   {
+    if( curFocus != null )
+      {
+        switch( curFocus.getType() )
+          {
+          case FACE:
+            Mesh.Face f = curFocus.getFace();
+            f.setSelected( ! f.isSelected() );
+            break;
+
+          case EDGE:
+            Mesh.Edge e = curFocus.getEdge();
+            e.setSelected( ! e.isSelected() );
+            break;
+
+          case POINT:
+            Mesh.Point3d p = curFocus.getPoint();
+            p.setSelected( ! p.isSelected() );
+          }
+        view.repaint();
+      }
   }
 
   // ======================================================================
@@ -89,27 +110,7 @@ public class InputHandler
     mouseX = e.getX();
     mouseY = e.getY();
 
-    if( ! meshFocusListeners.isEmpty() ) // don't check focus if nobody is listening
-      {
-        final FocusInfo focus = view.getFocusedMesh( mouseX, mouseY );
-        if( focus != null )
-          {
-            if( (curFocus == null) ||
-                (focus.getType() != curFocus.getType()) ||
-                (focus.getMesh() != curFocus.getMesh()) ||
-                (focus.getFace() != curFocus.getFace()) ||
-                (focus.getEdge() != curFocus.getEdge()) ||
-                (focus.getPoint() != curFocus.getPoint()) )
-              {
-                notifyMeshFocusGained( focus );
-              }
-          }
-        else if( curFocus != null )
-          {
-            notifyMeshFocusLost( curFocus ); // lost focus
-          }
-        curFocus = focus;
-      }
+    testFocus();
   }
   @Override
   public void mouseDragged( final MouseEvent e )
@@ -157,6 +158,75 @@ public class InputHandler
   }
 
   // ----------------------------------------------------------------------
+
+  private void testFocus()
+  {
+    if( ! meshFocusListeners.isEmpty() ) // don't check focus if nobody is listening
+      {
+        final FocusInfo focus = view.getFocusedMesh( mouseX, mouseY );
+
+        Object prev = null;
+        if( curFocus != null )
+          {
+            switch( curFocus.getType() )
+              {
+              case FACE:
+                Mesh.Face f = curFocus.getFace();
+                f.setFocused( false );
+                prev = f;
+                break;
+              case EDGE:
+                Mesh.Edge e = curFocus.getEdge();
+                e.setFocused( false );
+                prev = e;
+                break;
+              case POINT:
+                Mesh.Point3d p = curFocus.getPoint();
+                p.setFocused( false );
+                prev = p;
+                break;
+              }
+          }
+
+        Object cur = null;
+        if( focus != null )
+          {
+            switch( focus.getType() )
+              {
+              case FACE:
+                Mesh.Face f = focus.getFace();
+                f.setFocused( true );
+                cur = f;
+                break;
+              case EDGE:
+                Mesh.Edge e = focus.getEdge();
+                e.setFocused( true );
+                cur = e;
+                break;
+              case POINT:
+                Mesh.Point3d p = focus.getPoint();
+                p.setFocused( true );
+                cur = p;
+                break;
+              }
+          }
+
+        if( prev != cur )
+          {
+            if( prev != null )
+              {
+                notifyMeshFocusLost( curFocus );
+              }
+            if( cur != null )
+              {
+                notifyMeshFocusGained( focus );
+              }
+            view.repaint();
+          }
+
+        curFocus = focus;
+      }
+  }
 
   private void notifyMeshFocusGained( final FocusInfo info )
   {

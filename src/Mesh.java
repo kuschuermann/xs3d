@@ -55,6 +55,15 @@ public class Mesh
     return isFocusable;
   }
 
+  public void setSelectable( final boolean isSelectable )
+  {
+    this.isSelectable = isSelectable;
+  }
+  public boolean isSelectable()
+  {
+    return isSelectable;
+  }
+
   /**
    * <p>Add a {@link ChangeListener} to be notified when any Mesh
    * element (point, edge, or face) is added to or removed from the
@@ -244,6 +253,31 @@ public class Mesh
       }
   }
 
+  public static class Coloring
+  {
+    public Coloring( final Color normal,
+                     final Color focused,
+                     final Color selected )
+    {
+      this.normal = normal;
+      this.focused = focused;
+      this.selected = selected;
+    }
+    public Color normal()
+    {
+      return normal;
+    }
+    public Color focused()
+    {
+      return focused;
+    }
+    public Color selected()
+    {
+      return selected;
+    }
+    private Color normal, focused, selected;
+  }
+
   // ======================================================================
   // Nested classes (Point3d, Edge, Face)
   // ======================================================================
@@ -263,6 +297,25 @@ public class Mesh
       super();
       setXYZ( x, y, z );
     }
+
+    public void setFocused( final boolean isFocused )
+    {
+      this.isFocused = isFocused;
+    }
+    public boolean isFocused()
+    {
+      return isFocused;
+    }
+
+    public void setSelected( final boolean isSelected )
+    {
+      this.isSelected = isSelected;
+    }
+    public boolean isSelected()
+    {
+      return isSelected;
+    }
+
     public double getX()
     {
       return x;
@@ -295,6 +348,8 @@ public class Mesh
     {
       this.z = z;
     }
+    private boolean isFocused;
+    private boolean isSelected;
     private double x, y, z;
   }
 
@@ -305,15 +360,34 @@ public class Mesh
    **/
   public static class Edge
   {
-    public Edge( final Color color,
+    public Edge( final Coloring coloring,
                  final Point3d head,
                  final Point3d tail )
     {
       super();
-      this.color = color;
+      this.coloring = coloring;
       this.head = head;
       this.tail = tail;
     }
+
+    public void setFocused( final boolean isFocused )
+    {
+      this.isFocused = isFocused;
+    }
+    public boolean isFocused()
+    {
+      return isFocused;
+    }
+
+    public void setSelected( final boolean isSelected )
+    {
+      this.isSelected = isSelected;
+    }
+    public boolean isSelected()
+    {
+      return isSelected;
+    }
+
     public Point3d getHead()
     {
       return head;
@@ -322,15 +396,17 @@ public class Mesh
     {
       return tail;
     }
-    public Color getColor()
+    public Coloring getColoring()
     {
-      return color;
+      return coloring;
     }
-    void setColor( final Color color )
+    void setColor( final Coloring coloring )
     {
-      this.color = color;
+      this.coloring = coloring;
     }
-    private Color color;
+    private boolean isFocused;
+    private boolean isSelected;
+    private Coloring coloring;
     private final Point3d head, tail;
   }
 
@@ -341,7 +417,7 @@ public class Mesh
    **/
   public static class Face
   {
-    public Face( final Color color,
+    public Face( final Coloring coloring,
                  final Edge ... edges )
     {
       super();
@@ -349,26 +425,45 @@ public class Mesh
         {
           throw new IllegalArgumentException( "Faces must have at least 3 edges" );
         }
-      this.color = color;
+      this.coloring = coloring;
       for( Edge e : edges )
         {
           add( e );
         }
     }
-    Face( final Color color,
-             final List<Edge> edges )
+    Face( final Coloring coloring,
+          final List<Edge> edges )
     {
       super();
       if( edges.size() < 3 )
         {
           throw new IllegalArgumentException( "Faces must have at least 3 edges" );
         }
-      this.color = color;
+      this.coloring = coloring;
       for( Edge e : edges )
         {
           add( e );
         }
     }
+
+    public void setFocused( final boolean isFocused )
+    {
+      this.isFocused = isFocused;
+    }
+    public boolean isFocused()
+    {
+      return isFocused;
+    }
+
+    public void setSelected( final boolean isSelected )
+    {
+      this.isSelected = isSelected;
+    }
+    public boolean isSelected()
+    {
+      return isSelected;
+    }
+
     void add( final Edge edge )
     {
       if( edges.isEmpty() ||
@@ -394,13 +489,13 @@ public class Mesh
           throw new IllegalArgumentException( "Cannot reduce edge count to less than 3" );
         }
     }
-    public Color getColor()
+    public Coloring getColoring()
     {
-      return color;
+      return coloring;
     }
-    void setColor( final Color color )
+    void setColoring( final Coloring coloring )
     {
-      this.color = color;
+      this.coloring = coloring;
     }
     public boolean contains( final Edge edge )
     {
@@ -419,7 +514,9 @@ public class Mesh
         }
       return edgeArray;
     }
-    private Color color;
+    private boolean isFocused;
+    private boolean isSelected;
+    private Coloring coloring;
     private Edge[] edgeArray;
     private final List<Edge> edges = new ArrayList<Edge>();
   }
@@ -435,6 +532,7 @@ public class Mesh
   private final List<Face> faces = new ArrayList<Face>();
   //
   private boolean isFocusable = true;
+  private boolean isSelectable = true;
   // The ChangeListenerS that registered their interest to be informed
   // when the contents of the Mesh are changed (elements are added or
   // removed)

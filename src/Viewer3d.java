@@ -6,7 +6,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.RenderingHints;
-
+import java.awt.Stroke;
+import java.awt.BasicStroke;
 import java.awt.event.ActionEvent;
 
 import java.util.Arrays;
@@ -127,9 +128,10 @@ class Viewer3d
   Viewer3d()
   {
     super();
-    reset();
     setOpaque( true );
+    reset();
 
+    // Define the "reset" action.
     getActionMap().put( "reset",
                         new AbstractAction()
                         {
@@ -471,7 +473,7 @@ class Viewer3d
                     // average distance of each point's z-coordinate
                     // will determine how far this line is from the
                     // viewer.
-                    zref.add( new ZRef(mesh,e,e.getColor(),p2d1,p2d2) );
+                    zref.add( new ZRef(mesh,e,p2d1,p2d2) );
                   }
                 else
                   {
@@ -527,7 +529,7 @@ class Viewer3d
             // at least 3 points now to enclose the face.
             final Point2d[] pointList = new Point2d[ points.size() ];
             points.toArray( pointList );
-            zref.add( new ZRef(mesh,f,f.getColor(),pointList) );
+            zref.add( new ZRef(mesh,f,pointList) );
           }
       }
 
@@ -552,26 +554,27 @@ class Viewer3d
     for( int i=0; i<zcount; i++ )
       {
         final ZRef z = zbuf[i];
+        final Mesh m = z.getMesh();
         final Point2d[] points = z.get();
         if( points.length == 1 )                // 1 point is a point
           {
             if( RENDER_POINTS )
               {
-                paintPoint( g2, points[0] );
+                paintPoint( g2, z.getPoint(), points[0] );
               }
           }
         else if( points.length == 2 )           // 2 points is an edge
           {
-            paintEdge( g2, z.getColor(), points[0], points[1] );
+            paintEdge( g2, z.getEdge(), points[0], points[1] );
           }
         else                                    // 3+ points is a face
           {
-            paintFace( g2, z.getColor(), points );
+            paintFace( g2, z.getFace(), points );
           }
       }
 
     long nanos = (System.nanoTime() - startTime);
-    System.err.print( String.format("\r%1.2f",1000000000.0d / nanos) );
+    System.err.print( String.format("\r%1.2f FPS",1000000000.0d / nanos) );
   }
 
   /**
@@ -583,15 +586,30 @@ class Viewer3d
    * @param p Where to render the point
    **/
   private void paintPoint( final Graphics2D g2,
+                           final Mesh.Point3d point,
                            final Point2d p )
   {
-    g2.setColor( GRAY );
+    final Color[] colors;
+    if( point.isSelected() )
+      {
+        colors = SELECTED;
+      }
+    else if( point.isFocused() )
+      {
+        colors = FOCUSED;
+      }
+    else
+      {
+        colors = NORMAL;
+      }
+
+    g2.setColor( colors[0] );
     g2.fillOval( p.x-3, p.y-3, 7, 7 );
 
-    g2.setColor( LGRAY );
+    g2.setColor( colors[1] );
     g2.fillOval( p.x-2, p.y-2, 5, 5 );
 
-    g2.setColor( WHITE );
+    g2.setColor( colors[2] );
     g2.fillOval( p.x-1, p.y-1, 3, 3 );
 
     if( RENDER_DRAWING_DEPTH )
@@ -611,13 +629,32 @@ class Viewer3d
    * @param tail The ending point of the edge
    **/
   private void paintEdge( final Graphics2D g2,
-                          final Color c,
+                          final Mesh.Edge edge,
                           final Point2d head,
                           final Point2d tail )
   {
-    g2.setColor( c );
+    if( edge.isSelected() )
+      {
+        g2.setColor( edge.getColoring().selected() );
+      }
+    else if( edge.isFocused() )
+      {
+        g2.setColor( edge.getColoring().focused() );
+      }
+    else
+      {
+        g2.setColor( edge.getColoring().normal() );
+      }
+    if( originalStroke == null )
+      {
+        originalStroke = g2.getStroke();
+      }
+    g2.setStroke( edge.isSelected()
+                  ? selectedStroke
+                  : originalStroke );
     g2.drawLine( head.x, head.y,
                  tail.x, tail.y );
+    g2.setStroke( originalStroke );
     if( RENDER_DRAWING_DEPTH )
       {
         g2.drawString( String.valueOf(++_counter),
@@ -635,8 +672,8 @@ class Viewer3d
    * @param pN Three or more points to define the face corners.
    **/
   private void paintFace( final Graphics2D g2,
-                             final Color c,
-                             final Point2d[] pN )
+                          final Mesh.Face face,
+                          final Point2d[] pN )
   {
     final int size = pN.length;
     final int[] x = new int[ size ];
@@ -650,7 +687,18 @@ class Viewer3d
         n++;
       }
 
-    g2.setColor( c );
+    if( face.isSelected() )
+      {
+        g2.setColor( face.getColoring().selected() );
+      }
+    else if( face.isFocused() )
+      {
+        g2.setColor( face.getColoring().focused() );
+      }
+    else
+      {
+        g2.setColor( face.getColoring().normal() );
+      }
     g2.fillPolygon( x, y, size );
 
     if( RENDER_DRAWING_DEPTH )
@@ -722,7 +770,6 @@ class Viewer3d
           final Mesh.Point3d point,
           final Point2d ref )
       {
-        this.color = null;
         this.refs = new Point2d[]{ref};
         this.avgDepth = ref.depth;
         //
@@ -731,11 +778,9 @@ class Viewer3d
       }
     ZRef( final Mesh mesh,
           final Mesh.Edge edge,
-          final Color color,
           final Point2d refHead,
           final Point2d refTail )
       {
-        this.color = color;
         this.refs = new Point2d[]{refHead,refTail};
         this.avgDepth = (refHead.depth + refTail.depth) / 2.0d;
         //
@@ -744,10 +789,8 @@ class Viewer3d
       }
     ZRef( final Mesh mesh,
           final Mesh.Face face,
-          final Color color,
           final Point2d[] refs )
       {
-        this.color = color;
         this.refs = refs;
         fixDepth();
         //
@@ -757,10 +800,6 @@ class Viewer3d
     Point2d[] get()
     {
       return refs;
-    }
-    Color getColor()
-    {
-      return color;
     }
     public Mesh getMesh()
     {
@@ -902,7 +941,6 @@ class Viewer3d
         }
       avgDepth = d / refs.length;
     }
-    private final Color color;
     private final Point2d[] refs;
     private double avgDepth;
     //
@@ -939,8 +977,25 @@ class Viewer3d
   private int zcount;                   // how many in zbuf are actually used
   private ZRef[] zbuf = new ZRef[0];    // quicker than a List<ZBuf>, never shrinks
   private final List<Mesh> meshes = new ArrayList<Mesh>();
+  //
   // colors for drawing the little spheres to represent points
   private static final Color GRAY  = new Color( 127, 127, 127 );
   private static final Color LGRAY = new Color( 191, 191, 191 );
   private static final Color WHITE = new Color( 255, 255, 255 );
+  //
+  private static final Color BROWN         = new Color( 127, 127, 0 );
+  private static final Color YELLOW        = new Color( 191, 191, 0 );
+  private static final Color BRIGHT_YELLOW = new Color( 255, 255, 0 );
+  //
+  private static final Color DARK_RED   = new Color( 127, 0, 0 );
+  private static final Color RED        = new Color( 191, 0, 0 );
+  private static final Color BRIGHT_RED = new Color( 255, 0, 0 );
+  //
+  private static final Color[] NORMAL   = new Color[]{GRAY,LGRAY,WHITE};
+  private static final Color[] FOCUSED  = new Color[]{BROWN,YELLOW,BRIGHT_YELLOW};
+  private static final Color[] SELECTED = new Color[]{DARK_RED,RED,BRIGHT_RED};
+  private static Stroke originalStroke;
+  private static final Stroke selectedStroke = new BasicStroke( 3,
+                                                                BasicStroke.CAP_BUTT,
+                                                                BasicStroke.JOIN_ROUND );
 }
