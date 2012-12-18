@@ -39,12 +39,13 @@ class GUI
   // ==============================
   // Runnable
   // ==============================
+  @Override
   public void run()
   {
     this.frame = new JFrame( "XS3D" );
 
     final Viewer3d viewer3d = new Viewer3d();
-    new ViewManipulator(viewer3d);
+    new InputHandler( viewer3d );
     this.frame.setContentPane( viewer3d );
 
     this.frame.pack();

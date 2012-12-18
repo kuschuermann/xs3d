@@ -71,19 +71,60 @@ class Viewer3d
   public static final boolean RENDER_POINTS = true;
 
   /**
-   * Construct a Viewer3d Component whose initial viewing angle is
+   * <p>Construct a Viewer3d Component whose initial viewing angle is
    * (-1,&nbsp;3.35,&nbsp;&pi;) and initial screen position is
-   * (0,&nbsp;0,&nbsp;50) to provide an oblique view at the scene.
+   * (0,&nbsp;0,&nbsp;50) to provide an oblique view at the scene.</p>
+   *
+   * <p>The Viewer3d is non-interactive by default. A convenient
+   * {@link MouseHandler} is available which implements MouseListener,
+   * MouseMotionListener, and MouseWheelListener interfaces to provide
+   * rudimentary view manipulation.</p>
+   *
+   * <p>Example #1: Convenient pre-built MouseHandler</p>
+   *
+   * <pre>
+   *   Viewer3d v = new Viewer3d();
+   *
+   *   // remembers the Viewer3d and adds itself to the Viewer3d as a
+   *   MouseListener, MouseMotionListener, and MouseWheelListener:
+   *   new MouseHandler( v );
+   * </pre>
+   *
+   * <p>Example #2: Your own custom handlers</p>
+   *
+   * <pre>
+   *   // 'final' ensures that the anonymous inner classes can
+   *   // reference 'v' (the Viewer3d instance):
+   *   final Viewer3d v = new Viewer3d();
+   *
+   *   v.addMouseListener( new MouseListener()
+   *     {
+   *       &hellip;
+   *     } );
+   *   v.addMouseMotionListener( new MouseMotionListener()
+   *     {
+   *       &hellip;
+   *     } );
+   *   v.addMouseWheelListener( new MouseWheelListener()
+   *     {
+   *       &hellip;
+   *     } );
+   * </pre>
+   *
+   * <p>Also consider adding keyboard input handlers
    **/
   Viewer3d()
   {
     super();
+    reset();
+    setOpaque( true );
+  }
+
+  public void reset()
+  {
     setViewAngle( new Vector3d(-1.0d, 3.35d, Math.PI) );
     setScreenPosition( new Vector3d(0,0,50) );
-
     this.modelScale = 1000; // a fudge factor to control distortion
-
-    setOpaque( true );
   }
 
   /**
@@ -278,6 +319,9 @@ class Viewer3d
     return p2d;
   }
 
+  // ======================================================================
+  // ChangeListener
+  // ======================================================================
   /**
    * Implementation of the {@link ChangeListener}, called by the Mesh
    * when something (a point, edge, or face) is added or removed
@@ -286,10 +330,12 @@ class Viewer3d
    * @param e The ChangeEvent describing the change. Generally the
    * source is one of the {@link Mesh}es added to this object.
    **/
+  @Override
   public void stateChanged( final ChangeEvent e )
   {
     repaint();
   }
+  // ----------------------------------------------------------------------
 
   /**
    * This method is invoked by Swing whenever a repaint event is
