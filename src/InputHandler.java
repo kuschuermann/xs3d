@@ -1,7 +1,5 @@
 package com.ringlord.xs3d;
 
-import java.awt.event.KeyListener;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseEvent;
@@ -11,6 +9,12 @@ import java.awt.event.MouseWheelEvent;
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
 import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
 import static java.awt.event.InputEvent.ALT_DOWN_MASK;
+
+import java.util.Set;
+import java.util.HashSet;
+
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 
 
 /**
@@ -25,8 +29,7 @@ import static java.awt.event.InputEvent.ALT_DOWN_MASK;
  * @author K. Udo Schuermann
  **/
 public class InputHandler
-  implements KeyListener,
-             MouseListener,
+  implements MouseListener,
              MouseMotionListener,
              MouseWheelListener
 {
@@ -35,35 +38,20 @@ public class InputHandler
     super();
     this.view = view;
 
-    view.addKeyListener( this );
     view.addMouseListener( this );
     view.addMouseMotionListener( this );
     view.addMouseWheelListener( this );
+
+    view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put( KeyStroke.getKeyStroke("ctrl L"), "reset" );
   }
 
-  // ======================================================================
-  // KeyListener
-  // ======================================================================
-  @Override
-  public void keyPressed( final KeyEvent e )
+  public void addMeshFocusListener( final MeshFocusListener l )
   {
-    final int keyCode = e.getKeyCode();
-
-    if( keyCode == KeyEvent.VK_L )
-      {
-        if( (e.getModifiersEx() & CTRL_DOWN_MASK) == CTRL_DOWN_MASK )
-          {
-            view.reset();
-          }
-      }
+    meshFocusListeners.add( l );
   }
-  @Override
-  public void keyReleased( final KeyEvent e )
+  public void removeMeshFocusListener( final MeshFocusListener l )
   {
-  }
-  @Override
-  public void keyTyped( final KeyEvent e )
-  {
+    meshFocusListeners.remove( l );
   }
 
   // ======================================================================
@@ -98,6 +86,30 @@ public class InputHandler
   @Override
   public void mouseMoved( final MouseEvent e )
   {
+    mouseX = e.getX();
+    mouseY = e.getY();
+
+    if( ! meshFocusListeners.isEmpty() ) // don't check focus if nobody is listening
+      {
+        final FocusInfo focus = view.getFocusedMesh( mouseX, mouseY );
+        if( focus != null )
+          {
+            if( (curFocus == null) ||
+                (focus.getType() != curFocus.getType()) ||
+                (focus.getMesh() != curFocus.getMesh()) ||
+                (focus.getFace() != curFocus.getFace()) ||
+                (focus.getEdge() != curFocus.getEdge()) ||
+                (focus.getPoint() != curFocus.getPoint()) )
+              {
+                notifyMeshFocusGained( focus );
+              }
+          }
+        else if( curFocus != null )
+          {
+            notifyMeshFocusLost( curFocus ); // lost focus
+          }
+        curFocus = focus;
+      }
   }
   @Override
   public void mouseDragged( final MouseEvent e )
@@ -117,8 +129,12 @@ public class InputHandler
                        viewAngleY + (0.01d * (curY - mouseY)),
                        viewAngleZ );
 
+    // Now that we have computed the delta between previous and
+    // current mouse position, update the mouse position so that the
+    // current one becomes the previous on the next invocation.
     mouseX = curX;
     mouseY = curY;
+
   }
 
   // ======================================================================
@@ -140,9 +156,33 @@ public class InputHandler
       }
   }
 
+  // ----------------------------------------------------------------------
+
+  private void notifyMeshFocusGained( final FocusInfo info )
+  {
+    final MeshFocusEvent e = new MeshFocusEvent( view, info );
+    for( MeshFocusListener l : meshFocusListeners )
+      {
+        l.meshFocusGained( e );
+      }
+  }
+
+  private void notifyMeshFocusLost( final FocusInfo info )
+  {
+    final MeshFocusEvent e = new MeshFocusEvent( view, info );
+    for( MeshFocusListener l : meshFocusListeners )
+      {
+        l.meshFocusLost( e );
+      }
+  }
+
+  // ----------------------------------------------------------------------
+
   // the last place where a mouse button was pressed or where the
   // mouse was during a drag operation; used for computing drag
   // offsets during scene rotation.
   private int mouseX, mouseY;
   private final Viewer3d view;
+  private FocusInfo curFocus;
+  private final Set<MeshFocusListener> meshFocusListeners = new HashSet<MeshFocusListener>();
 }

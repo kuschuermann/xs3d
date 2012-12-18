@@ -45,7 +45,19 @@ class GUI
     this.frame = new JFrame( "XS3D" );
 
     final Viewer3d viewer3d = new Viewer3d();
-    new InputHandler( viewer3d );
+    final InputHandler h = new InputHandler( viewer3d );
+    h.addMeshFocusListener( new MeshFocusListener()
+      {
+        public void meshFocusGained( final MeshFocusEvent e )
+        {
+          System.out.println( new java.util.Date()+" in focus: "+e.getFocusInfo() );
+        }
+        public void meshFocusLost( final MeshFocusEvent e )
+        {
+          System.out.println( new java.util.Date()+" NO FOCUS (was: "+e.getFocusInfo()+")" );
+        }
+      } );
+    viewer3d.requestFocusInWindow();
     this.frame.setContentPane( viewer3d );
 
     this.frame.pack();

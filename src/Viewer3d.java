@@ -7,11 +7,14 @@ import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.RenderingHints;
 
-import java.util.Collections;
+import java.awt.event.ActionEvent;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
 import javax.swing.JComponent;
+import javax.swing.AbstractAction;
 
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
@@ -109,22 +112,48 @@ class Viewer3d
    *     {
    *       &hellip;
    *     } );
+   *   v.getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW )
+   *    .put( KeyStroke.getKeyStroke("ctrl L"),
+   *          "reset" );
    * </pre>
    *
-   * <p>Also consider adding keyboard input handlers
+   * <p>NOTE: Supported actions are (see also example #2 above):</p>
+   *
+   * <dl>
+   * <dt>"reset"
+   * <dd>Resets the view to the initial position, rotation, and scale.
+   * </dl>
    **/
   Viewer3d()
   {
     super();
     reset();
     setOpaque( true );
+
+    getActionMap().put( "reset",
+                        new AbstractAction()
+                        {
+                          public void actionPerformed( final ActionEvent e )
+                          {
+                            reset();
+                          }
+                        } );
   }
 
   public void reset()
   {
-    setViewAngle( new Vector3d(-1.0d, 3.35d, Math.PI) );
-    setScreenPosition( new Vector3d(0,0,50) );
     this.modelScale = 1000; // a fudge factor to control distortion
+
+    // do not call setWorldCenterXYZ as that one repaints
+    worldCenterX = worldCenterY = worldCenterZ = 0.0d;
+
+    // do not call setScreenPosition as that one repaints
+    screenPositionX = 0.0d;
+    screenPositionY = 0.0d;
+    screenPositionZ = 50.d;
+
+    // this one is complicated; it also repaints, which we want LAST!
+    setViewAngle( new Vector3d(-1.0d, 3.35d, Math.PI) );
   }
 
   /**
@@ -154,6 +183,7 @@ class Viewer3d
    **/
   public void remove( final Mesh mesh )
   {
+    // we COULD null zbuf to force zbuf to shrink
     mesh.removeChangeListener( this );
     meshes.remove( mesh );
     meshArray = null;
@@ -179,6 +209,28 @@ class Viewer3d
   public Dimension getPreferredSize()
   {
     return new Dimension( 480, 300 );
+  }
+
+  public FocusInfo getFocusedMesh( final int focusX,
+                                   final int focusY )
+  {
+    if( zbuf == null )
+      {
+        return null;
+      }
+    // Move backwards through the zbuffer, checking front-most items
+    // before checking ones in the back (if we actually culled items
+    // that are totally obscured, we could do this quicker)
+    for( int i=zcount-1; i>=0; i-- )
+      {
+        final ZRef z = zbuf[i];
+        final FocusInfo n = z.getFocusInfo( focusX, focusY );
+        if( n != null )
+          {
+            return n;
+          }
+      }
+    return null;
   }
 
   /**
@@ -242,6 +294,17 @@ class Viewer3d
     return viewAngleZ;
   }
 
+  public void setWorldCenterXYZ( final double x,
+                                 final double y,
+                                 final double z )
+  {
+    this.worldCenterX = x;
+    this.worldCenterY = y;
+    this.worldCenterZ = z;
+
+    repaint();
+  }
+
   /**
    * Sets the position of the screen that is mapped to the display,
    * onto which the 3D scene is projected. Changing the z-coordinate
@@ -295,9 +358,9 @@ class Viewer3d
                            final double yScreenCenter,
                            final Mesh.Point3d point )
   {
-    final double px = point.getX();
-    final double py = point.getY();
-    final double pz = point.getZ();
+    final double px = point.getX() - worldCenterX;
+    final double py = point.getY() - worldCenterY;
+    final double pz = point.getZ() - worldCenterZ;
 
     final double x = (screenPositionX +
                       (px * cosTheta) -
@@ -381,7 +444,7 @@ class Viewer3d
               {
                 // The ZRef will take the Point2d's z-coordinate to
                 // determine the distance from the viewer.
-                zref.add( new ZRef(p2d) );
+                zref.add( new ZRef(mesh,p,p2d) );
               }
           }
 
@@ -402,7 +465,7 @@ class Viewer3d
                     // average distance of each point's z-coordinate
                     // will determine how far this line is from the
                     // viewer.
-                    zref.add( new ZRef(e.getColor(),p2d1,p2d2) );
+                    zref.add( new ZRef(mesh,e,e.getColor(),p2d1,p2d2) );
                   }
                 else
                   {
@@ -458,13 +521,19 @@ class Viewer3d
             // at least 3 points now to enclose the face.
             final Point2d[] pointList = new Point2d[ points.size() ];
             points.toArray( pointList );
-            zref.add( new ZRef(f.getColor(),pointList) );
+            zref.add( new ZRef(mesh,f,f.getColor(),pointList) );
           }
       }
 
     // Time to sort the ZRef: The Comparator for the ZRef causes the
-    // elements farthest away to be ordered first in the list
-    Collections.sort( zref );
+    // elements farthest away to be ordered first in the list. We
+    // convert the list to an array and loop through that as it is
+    // generally much faster to process an array than a List (it has
+    // been observed to be about 3× faster, actually, but that may
+    // vary).
+    zcount = zref.size();
+    zbuf = zref.toArray( zbuf );
+    Arrays.sort( zbuf, 0, zcount );
 
     if( RENDER_DRAWING_DEPTH )
       {
@@ -474,8 +543,9 @@ class Viewer3d
     // Render each of the elements in the ZRef structure. The number
     // of points referenced determines whether it's a point (1), an
     // edge (2), or a face (3+).
-    for( ZRef z : zref )
+    for( int i=0; i<zcount; i++ )
       {
+        final ZRef z = zbuf[i];
         final Point2d[] points = z.get();
         if( points.length == 1 )                // 1 point is a point
           {
@@ -642,26 +712,41 @@ class Viewer3d
   static class ZRef
     implements Comparable<ZRef>
   {
-    ZRef( final Point2d ref )
+    ZRef( final Mesh mesh,
+          final Mesh.Point3d point,
+          final Point2d ref )
       {
         this.color = null;
         this.refs = new Point2d[]{ref};
         this.avgDepth = ref.depth;
+        //
+        this.mesh = mesh;
+        this.point = point;
       }
-    ZRef( final Color color,
+    ZRef( final Mesh mesh,
+          final Mesh.Edge edge,
+          final Color color,
           final Point2d refHead,
           final Point2d refTail )
       {
         this.color = color;
         this.refs = new Point2d[]{refHead,refTail};
         this.avgDepth = (refHead.depth + refTail.depth) / 2.0d;
+        //
+        this.mesh = mesh;
+        this.edge = edge;
       }
-    ZRef( final Color color,
+    ZRef( final Mesh mesh,
+          final Mesh.Face face,
+          final Color color,
           final Point2d[] refs )
       {
         this.color = color;
         this.refs = refs;
         fixDepth();
+        //
+        this.mesh = mesh;
+        this.face = face;
       }
     Point2d[] get()
     {
@@ -670,6 +755,118 @@ class Viewer3d
     Color getColor()
     {
       return color;
+    }
+    public Mesh getMesh()
+    {
+      return mesh;
+    }
+    public Mesh.Face getFace()
+    {
+      return face;
+    }
+    public Mesh.Edge getEdge()
+    {
+      return edge;
+    }
+    public Mesh.Point3d getPoint()
+    {
+      return point;
+    }
+    public FocusInfo getFocusInfo( final int focusX,
+                                   final int focusY )
+    {
+      if( face != null )
+        {
+          boolean isInside = false;
+          Point2d p = refs[ refs.length-1 ]; // last/previous one
+          for( Point2d v : refs )
+            {
+              final int x0 = p.getX();
+              final int y0 = p.getY();
+
+              final int x1 = v.getX();
+              final int y1 = v.getY();
+
+              if( (((y0 <= focusY) && (focusY < y1)) ||
+                   ((y1 <= focusY) && (focusY < y0))) &&
+                  (focusX < (((x0-x1)*(focusY-y1)) / (y0-y1)) + x1) )
+                {
+                  isInside = ! isInside;
+                }
+              p = v;
+            }
+          if( isInside )
+            {
+              return new FocusInfo(mesh,face);
+            }
+        }
+      else if( edge != null )
+        {
+          Point2d p1 = refs[0];
+          Point2d p2 = refs[1];
+
+          final int x1 = p1.getX();
+          final int y1 = p1.getY();
+
+          final int x2 = p2.getX();
+          final int y2 = p2.getY();
+
+          final int dX = x2 - x1;
+          final int dY = y2 - y1;
+          final float du = (dX*dX + dY*dY);
+          if( du != 0.0f )
+            {
+              final float u = (((dX*(focusX - x1)) + (dY*(focusY - y1))) / du);
+
+              // Check whether we have no perpendicular line through
+              // the segment, i.e. we have something like the left
+              // side vertical line that misses the segment ("whoops")
+              // rather than crossing it ("yay")
+              //
+              // p +           p +
+              //   |             |
+              //   |  p1 +-------+-----------+ p2
+              //   |             |
+              //   : whoops      |
+              //                 + yay
+              //
+              // For what it's wroth, the following holds:
+              //
+              // u < 0 : it misses on the x1/y1 side of the segment
+              // u > 1 : it misses on the x2/y2 side of the segment
+              //
+              // But we don't care about that; all we really need to
+              // know here is that we do NOT intercept the line
+              // segment:
+              if( (u >= 0.0f) && (u <= 1.0f) )
+                {
+                  // The perpendicular line intercepts the line segment somewhere,
+                  // so let's find out the distance. if it's less than our fuzziness
+                  // value, then the point is close enough to the line to be
+                  // considered "on" it:
+                  final float x3 = x1 + u*dX;
+                  final float y3 = y1 + u*dY;
+
+                  final float dist = (float)Math.hypot( (x3 - focusX),
+                                                        (y3 - focusY) );
+                  if( dist <= 2.0f )
+                    {
+                      return new FocusInfo(mesh,edge);
+                    }
+                }
+            }
+        }
+      else if( point != null )
+        {
+          Point2d p = refs[0];
+
+          if( (Math.abs(p.getX() - focusX) < 3) &&
+              (Math.abs(p.getY() - focusY) < 3) )
+            {
+              return new FocusInfo(mesh,point);
+            }
+        }
+      return null;
     }
     @Override
     public int compareTo( final ZRef other )
@@ -702,11 +899,18 @@ class Viewer3d
     private final Color color;
     private final Point2d[] refs;
     private double avgDepth;
+    //
+    private Mesh mesh;
+    private Mesh.Face face;
+    private Mesh.Edge edge;
+    private Mesh.Point3d point;
   }
 
   // values controlling the 3D projection
   private double screenPositionX, screenPositionY, screenPositionZ;
   private double viewAngleX, viewAngleY, viewAngleZ;
+  private double worldCenterX, worldCenterY, worldCenterZ;
+  private int focusX, focusY;
   private int modelScale;
   // values that are changed only when the viewangle is altered, and
   // are therefore pre-computed and cached for optimal performance
@@ -726,6 +930,8 @@ class Viewer3d
    * The {@link Mesh}es to be rendered.
    **/
   private Mesh[] meshArray;
+  private int zcount;                   // how many in zbuf are actually used
+  private ZRef[] zbuf = new ZRef[0];    // quicker than a List<ZBuf>, never shrinks
   private final List<Mesh> meshes = new ArrayList<Mesh>();
   // colors for drawing the little spheres to represent points
   private static final Color GRAY  = new Color( 127, 127, 127 );
