@@ -224,10 +224,16 @@ class Viewer3d
     for( int i=zcount-1; i>=0; i-- )
       {
         final ZRef z = zbuf[i];
-        final FocusInfo n = z.getFocusInfo( focusX, focusY );
+        final FocusInfo n = z.getAt( focusX, focusY );
         if( n != null )
           {
-            return n;
+            // We have a mesh that would be focused, but if this mesh
+            // is not focusable we will return null, as anything else
+            // would be obscured by this one and should not be
+            // selected until it would be above the current one.
+            return (n.getMesh().isFocusable()
+                    ? n
+                    : null);
           }
       }
     return null;
@@ -772,8 +778,8 @@ class Viewer3d
     {
       return point;
     }
-    public FocusInfo getFocusInfo( final int focusX,
-                                   final int focusY )
+    public FocusInfo getAt( final int focusX,
+                            final int focusY )
     {
       if( face != null )
         {

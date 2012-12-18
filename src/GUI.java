@@ -105,44 +105,49 @@ class GUI
     final Mesh.Face s0 = new Mesh.Face( Color.green, e0, e1, e2, e3 );
     final Mesh.Face s1 = new Mesh.Face( Color.blue,  e4, e5, e6, e7 );
 
-    final Mesh mesh = new Mesh();
+    final Mesh mesh0 = new Mesh();
+    final Mesh mesh1 = new Mesh();
     // true: add the points so that representations of points are rendered (as little spheres)
     if( true )
       {
-        mesh.add( p0 );
-        mesh.add( p1 );
-        mesh.add( p2 );
-        mesh.add( p3 );
+        mesh0.add( p0 );
+        mesh0.add( p1 );
+        mesh0.add( p2 );
+        mesh0.add( p3 );
 
-        mesh.add( p4 );
-        mesh.add( p5 );
-        mesh.add( p6 );
-        mesh.add( p7 );
+        mesh1.add( p4 );
+        mesh1.add( p5 );
+        mesh1.add( p6 );
+        mesh1.add( p7 );
       }
 
     // true: add the edges so that representations of edges are rendered (as lines)
     if( true )
       {
-        mesh.add( e0 );
-        mesh.add( e1 );
-        mesh.add( e2 );
-        mesh.add( e3 );
+        mesh0.add( e0 );
+        mesh0.add( e1 );
+        mesh0.add( e2 );
+        mesh0.add( e3 );
 
-        mesh.add( e4 );
-        mesh.add( e5 );
-        mesh.add( e6 );
-        mesh.add( e7 );
+        mesh1.add( e4 );
+        mesh1.add( e5 );
+        mesh1.add( e6 );
+        mesh1.add( e7 );
       }
 
     // true: add the faces so that faces are rendered (filled with solid color)
     if( true )
       {
-        mesh.add( s0 );
-        mesh.add( s1 );
+        mesh0.add( s0 );
+        mesh1.add( s1 );
       }
 
     // Add the Mesh to the viewer and voilá, instant 3D
-    viewer3d.add( mesh );
+    viewer3d.add( mesh0 );
+    viewer3d.add( mesh1 );
+
+    mesh0.setFocusable( true ); // redundant as Meshes is focusable by default
+    mesh1.setFocusable( false );
   }
 
   private JFrame frame;

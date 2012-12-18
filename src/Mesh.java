@@ -38,10 +38,23 @@ import javax.swing.event.ChangeEvent;
  * that (maybe extends Point) but is rendered with a custom drawing
  * routine (in Viewer3d).</p>
  *
+ * <p>A Mesh (with all points, faces, and edges) is focusable by
+ * default, but this can be controlled with {@link
+ * #setFocusable(boolean)}.</p>
+ *
  * @author K. Udo Schuermann
  **/
 public class Mesh
 {
+  public void setFocusable( final boolean isFocusable )
+  {
+    this.isFocusable = isFocusable;
+  }
+  public boolean isFocusable()
+  {
+    return isFocusable;
+  }
+
   /**
    * <p>Add a {@link ChangeListener} to be notified when any Mesh
    * element (point, edge, or face) is added to or removed from the
@@ -420,6 +433,8 @@ public class Mesh
   private final List<Point3d> points = new ArrayList<Point3d>();
   private final List<Edge> edges = new ArrayList<Edge>();
   private final List<Face> faces = new ArrayList<Face>();
+  //
+  private boolean isFocusable = true;
   // The ChangeListenerS that registered their interest to be informed
   // when the contents of the Mesh are changed (elements are added or
   // removed)
