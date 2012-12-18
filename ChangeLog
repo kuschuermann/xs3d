@@ -1,12 +1,19 @@
 2012-12-18	K Udo Schuermann <udo.schuermann@gmail.com>
 
+	* InputHandler supports focus inquiry and will notify
+	MeshFocusListenerS of changes to the focus.
+
 	* Mesh.java: Maintains transparent array caches for speed, and
 	returns these instead of Iterators on the List structures.
-	Surface is now named Face.
+	Surface is now named Face. Mesh can be unfocusable.
 
 	* Viewer3d.java: Separated the Mouse-based listeners into a
-	separate InputHandler class which also responds to ctrl-L to reset
-	the view.
+	separate InputHandler class. Viewer3d supports a “reset” action
+	invoked from the InputHandler in response to pressing ctrl-L
+
+	* GUI.java: Separated the single Mesh with green and blue X-shapes
+	into two meshes, one with the green and the other with the blue
+	X-shape; the blue X-shape is not focusable.
 
 2012-08-20	K Udo Schuermann <udo.schuermann@gmail.com>
 
