@@ -50,11 +50,11 @@ class GUI
       {
         public void meshFocusGained( final MeshFocusEvent e )
         {
-          System.out.println( new java.util.Date()+" in focus: "+e.getFocusInfo() );
+//          System.out.println( new java.util.Date()+" in focus: "+e.getFocusInfo() );
         }
         public void meshFocusLost( final MeshFocusEvent e )
         {
-          System.out.println( new java.util.Date()+" NO FOCUS (was: "+e.getFocusInfo()+")" );
+//          System.out.println( new java.util.Date()+" NO FOCUS (was: "+e.getFocusInfo()+")" );
         }
       } );
     viewer3d.requestFocusInWindow();
@@ -78,39 +78,83 @@ class GUI
 
     // ======================================================================
 
-    System.err.println( "GUI is building something simple to display.\n" );
+    System.err.println( "GUI is building a simple cube to display.\n" );
 
-    final Mesh.Coloring edgeColoring  = new Mesh.Coloring( Color.gray, Color.yellow, Color.red );
-    final Mesh.Coloring faceColoring0 = new Mesh.Coloring( Color.green, Color.yellow, Color.red );
-    final Mesh.Coloring faceColoring1 = new Mesh.Coloring( Color.blue,  Color.yellow, Color.red );
+    final Color focusColor  = new Color( 191, 0, 0, 212 );
+    final Color selectColor = new Color( 191, 0, 0, 240 );
+    final Color edgeColor = new Color( 0, 0, 0 );
+
+    final Mesh.Coloring edgeColoring  = new Mesh.Coloring( edgeColor, focusColor, selectColor );
+
+    final Mesh.Coloring faceColoring0 = new Mesh.Coloring( Color.cyan,   focusColor, selectColor );
+    final Mesh.Coloring faceColoring1 = new Mesh.Coloring( Color.blue,   focusColor, selectColor );
+    final Mesh.Coloring faceColoring2 = new Mesh.Coloring( Color.orange, focusColor, selectColor );
+    final Mesh.Coloring faceColoring3 = new Mesh.Coloring( Color.white,  focusColor, selectColor );
+    final Mesh.Coloring faceColoring4 = new Mesh.Coloring( Color.green,  focusColor, selectColor );
+    final Mesh.Coloring faceColoring5 = new Mesh.Coloring( Color.pink,   focusColor, selectColor );
 
     // An arrangement of points in 3D space
     final Mesh.Point3d p0 = new Mesh.Point3d(-1,-1,-1);
     final Mesh.Point3d p1 = new Mesh.Point3d(-1,-1, 1);
-    final Mesh.Point3d p2 = new Mesh.Point3d(-1, 1,-1);
-    final Mesh.Point3d p3 = new Mesh.Point3d(-1, 1, 1);
+    final Mesh.Point3d p2 = new Mesh.Point3d(-1, 1, 1);
+    final Mesh.Point3d p3 = new Mesh.Point3d(-1, 1,-1);
     final Mesh.Point3d p4 = new Mesh.Point3d( 1,-1,-1);
     final Mesh.Point3d p5 = new Mesh.Point3d( 1,-1, 1);
-    final Mesh.Point3d p6 = new Mesh.Point3d( 1, 1,-1);
-    final Mesh.Point3d p7 = new Mesh.Point3d( 1, 1, 1);
+    final Mesh.Point3d p6 = new Mesh.Point3d( 1, 1, 1);
+    final Mesh.Point3d p7 = new Mesh.Point3d( 1, 1,-1);
 
     // Connect some of the points into edges
-    final Mesh.Edge e0 = new Mesh.Edge( edgeColoring, p0, p1 );
-    final Mesh.Edge e1 = new Mesh.Edge( edgeColoring, p1, p2 );
-    final Mesh.Edge e2 = new Mesh.Edge( edgeColoring, p2, p3 );
-    final Mesh.Edge e3 = new Mesh.Edge( edgeColoring, p3, p0 );
+    final Mesh.Edge e10 = new Mesh.Edge( edgeColoring, p0, p1 );
+    final Mesh.Edge e11 = new Mesh.Edge( edgeColoring, p1, p2 );
+    final Mesh.Edge e12 = new Mesh.Edge( edgeColoring, p2, p3 );
+    final Mesh.Edge e13 = new Mesh.Edge( edgeColoring, p3, p0 );
 
-    final Mesh.Edge e4 = new Mesh.Edge( edgeColoring, p4, p5 );
-    final Mesh.Edge e5 = new Mesh.Edge( edgeColoring, p5, p6 );
-    final Mesh.Edge e6 = new Mesh.Edge( edgeColoring, p6, p7 );
-    final Mesh.Edge e7 = new Mesh.Edge( edgeColoring, p7, p4 );
+    final Mesh.Edge e20 = new Mesh.Edge( null, p4, p5 );
+    final Mesh.Edge e21 = new Mesh.Edge( null, p5, p6 );
+    final Mesh.Edge e22 = new Mesh.Edge( null, p6, p7 );
+    final Mesh.Edge e23 = new Mesh.Edge( null, p7, p4 );
 
-    // Collect the edges into surfaces
-    final Mesh.Face s0 = new Mesh.Face( faceColoring0, e0, e1, e2, e3 );
-    final Mesh.Face s1 = new Mesh.Face( faceColoring1,  e4, e5, e6, e7 );
+    final Mesh.Edge e30 = new Mesh.Edge( null, p2, p6 );
+    final Mesh.Edge e31 = new Mesh.Edge( null, p6, p7 );
+    final Mesh.Edge e32 = new Mesh.Edge( null, p7, p3 );
+    final Mesh.Edge e33 = new Mesh.Edge( null, p3, p2 );
 
+    final Mesh.Edge e40 = new Mesh.Edge( null, p0, p3 );
+    final Mesh.Edge e41 = new Mesh.Edge( null, p3, p7 );
+    final Mesh.Edge e42 = new Mesh.Edge( null, p7, p4 );
+    final Mesh.Edge e43 = new Mesh.Edge( null, p4, p0 );
+
+    final Mesh.Edge e50 = new Mesh.Edge( null, p1, p2 );
+    final Mesh.Edge e51 = new Mesh.Edge( null, p2, p6 );
+    final Mesh.Edge e52 = new Mesh.Edge( null, p6, p5 );
+    final Mesh.Edge e53 = new Mesh.Edge( null, p5, p1 );
+
+    final Mesh.Edge e60 = new Mesh.Edge( null, p5, p4 );
+    final Mesh.Edge e61 = new Mesh.Edge( null, p4, p0 );
+    final Mesh.Edge e62 = new Mesh.Edge( null, p0, p1 );
+    final Mesh.Edge e63 = new Mesh.Edge( null, p1, p5 );
+
+    // Collect the edges into faces
+    final Mesh.Face f0 = new Mesh.Face( faceColoring0, e10, e11, e12, e13 );
+    final Mesh.Face f1 = new Mesh.Face( faceColoring1, e20, e21, e22, e23 );
+    final Mesh.Face f2 = new Mesh.Face( faceColoring2, e30, e31, e32, e33 );
+    final Mesh.Face f3 = new Mesh.Face( faceColoring3, e40, e41, e42, e43 );
+    final Mesh.Face f4 = new Mesh.Face( faceColoring4, e50, e51, e52, e53 );
+    final Mesh.Face f5 = new Mesh.Face( faceColoring5, e60, e61, e62, e63 );
+
+    // Create a mesh for each face, though we could simply add all the
+    // faces to a single Mesh. The benefit of keeping them separated
+    // is the ability to remove individual meshes easily. As all of
+    // our meshes share the same vertices, however, moving one vertex
+    // will not separate the individual faces, but rather bend and
+    // twist the cube.
     final Mesh mesh0 = new Mesh();
     final Mesh mesh1 = new Mesh();
+    final Mesh mesh2 = new Mesh();
+    final Mesh mesh3 = new Mesh();
+    final Mesh mesh4 = new Mesh();
+    final Mesh mesh5 = new Mesh();
+
     // true: add the points so that representations of points are rendered (as little spheres)
     if( true )
       {
@@ -128,30 +172,57 @@ class GUI
     // true: add the edges so that representations of edges are rendered (as lines)
     if( true )
       {
-        mesh0.add( e0 );
-        mesh0.add( e1 );
-        mesh0.add( e2 );
-        mesh0.add( e3 );
+        mesh0.add( e10 );
+        mesh0.add( e11 );
+        mesh0.add( e12 );
+        mesh0.add( e13 );
 
-        mesh1.add( e4 );
-        mesh1.add( e5 );
-        mesh1.add( e6 );
-        mesh1.add( e7 );
+        mesh1.add( e20 );
+        mesh1.add( e21 );
+        mesh1.add( e22 );
+        mesh1.add( e23 );
       }
 
     // true: add the faces so that faces are rendered (filled with solid color)
     if( true )
       {
-        mesh0.add( s0 );
-        mesh1.add( s1 );
+        mesh0.add( f0 );
+        mesh1.add( f1 );
+        mesh2.add( f2 );
+        mesh3.add( f3 );
+        mesh4.add( f4 );
+        mesh5.add( f5 );
       }
 
-    // Add the Mesh to the viewer and voilá, instant 3D
+    // Add the Meshes to the viewer and voilá, instant 3D
     viewer3d.add( mesh0 );
     viewer3d.add( mesh1 );
+    viewer3d.add( mesh2 );
+    viewer3d.add( mesh3 );
+    viewer3d.add( mesh4 );
+    viewer3d.add( mesh5 );
+
+    new Thread()
+    {
+      public void run()
+      {
+        try
+          {
+            while( true )
+              {
+                mesh3.setVisible( ! mesh3.isVisible() );
+                viewer3d.repaint();
+                Thread.sleep( 1000 );
+              }
+          }
+        catch( InterruptedException x )
+          {
+          }
+      }
+    }.start();
 
     mesh0.setFocusable( true ); // redundant as Meshes is focusable by default
-    mesh1.setFocusable( false );
+    //    mesh1.setFocusable( false );
   }
 
   private JFrame frame;

@@ -64,6 +64,15 @@ public class Mesh
     return isSelectable;
   }
 
+  public void setVisible( final boolean isVisible )
+  {
+    this.isVisible = isVisible;
+  }
+  public boolean isVisible()
+  {
+    return isVisible;
+  }
+
   /**
    * <p>Add a {@link ChangeListener} to be notified when any Mesh
    * element (point, edge, or face) is added to or removed from the
@@ -260,8 +269,8 @@ public class Mesh
                      final Color selected )
     {
       this.normal = normal;
-      this.focused = focused;
-      this.selected = selected;
+      this.focused = (focused == null ? normal : focused);
+      this.selected = (selected == null ? focused : selected);
     }
     public Color normal()
     {
@@ -310,6 +319,7 @@ public class Mesh
     public void setSelected( final boolean isSelected )
     {
       this.isSelected = isSelected;
+      System.err.println( "Selected ("+x+", "+y+", "+z+")" );
     }
     public boolean isSelected()
     {
@@ -533,6 +543,7 @@ public class Mesh
   //
   private boolean isFocusable = true;
   private boolean isSelectable = true;
+  private boolean isVisible = true;
   // The ChangeListenerS that registered their interest to be informed
   // when the contents of the Mesh are changed (elements are added or
   // removed)

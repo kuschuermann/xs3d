@@ -442,66 +442,25 @@ class Viewer3d
     final List<ZRef> zref = new ArrayList<ZRef>();
     for( Mesh mesh : meshes() )
       {
-        // Points
-        for( Mesh.Point3d p : mesh.points() )
+        if( mesh.isVisible() )
           {
-            final Point2d p2d = project( xScreenCenter,
-                                         yScreenCenter,
-                                         p );
-            if( p2d.depth > 0 )
-              {
-                // The ZRef will take the Point2d's z-coordinate to
-                // determine the distance from the viewer.
-                zref.add( new ZRef(mesh,p,p2d) );
-              }
-          }
 
-        // Edges
-        for( Mesh.Edge e : mesh.edges() )
-          {
-            final Point2d p2d1 = project( xScreenCenter,
-                                          yScreenCenter,
-                                          e.getHead() );
-            final Point2d p2d2 = project( xScreenCenter,
-                                          yScreenCenter,
-                                          e.getTail() );
-            if( p2d1.depth > 0 )
+            // Points
+            for( Mesh.Point3d p : mesh.points() )
               {
-                if( p2d2.depth > 0 )
+                final Point2d p2d = project( xScreenCenter,
+                                             yScreenCenter,
+                                             p );
+                if( p2d.depth > 0 )
                   {
-                    // The line is fully in front of the viewer; the
-                    // average distance of each point's z-coordinate
-                    // will determine how far this line is from the
-                    // viewer.
-                    zref.add( new ZRef(mesh,e,p2d1,p2d2) );
-                  }
-                else
-                  {
-                    // The start of the line is in FRONT of the
-                    // viewer, but the end of it is BEHIND
-
-                    // @@@ find intersection in x,y space, construct a
-                    // new Point2d and store that as the END point,
-                    // instead (i.e. compute a clipped line)
+                    // The ZRef will take the Point2d's z-coordinate to
+                    // determine the distance from the viewer.
+                    zref.add( new ZRef(mesh,p,p2d) );
                   }
               }
-            else if( p2d2.depth > 0 )
-              {
-                // The start of the line is BEHIND the viewer, the end
-                // of it is in FRONT
 
-                // @@@ find intersection in x,y space, construct a new
-                // Point2d and store that as the START point, instead
-                // (i.e. compute a clipped line)
-              }
-          }
-
-        // Faces
-        nextFace:
-        for( Mesh.Face f : mesh.faces() )
-          {
-            points.clear(); // start with an empty list of points
-            for( Mesh.Edge e : f.edges() )
+            // Edges
+            for( Mesh.Edge e : mesh.edges() )
               {
                 final Point2d p2d1 = project( xScreenCenter,
                                               yScreenCenter,
@@ -509,27 +468,72 @@ class Viewer3d
                 final Point2d p2d2 = project( xScreenCenter,
                                               yScreenCenter,
                                               e.getTail() );
-                if( (p2d1.depth < 0) ||
-                    (p2d2.depth < 0) )
+                if( p2d1.depth > 0 )
                   {
-                    // One or both points of this edge lies behind the
-                    // viewer, so let's not render any part of the
-                    // face because it gets really complicated
-                    // trying to determine intersection points, and
-                    // render only subsections of the face.
-                    continue nextFace;
+                    if( p2d2.depth > 0 )
+                      {
+                        // The line is fully in front of the viewer; the
+                        // average distance of each point's z-coordinate
+                        // will determine how far this line is from the
+                        // viewer.
+                        zref.add( new ZRef(mesh,e,p2d1,p2d2) );
+                      }
+                    else
+                      {
+                        // The start of the line is in FRONT of the
+                        // viewer, but the end of it is BEHIND
+
+                        // @@@ find intersection in x,y space, construct a
+                        // new Point2d and store that as the END point,
+                        // instead (i.e. compute a clipped line)
+                      }
                   }
-                // As our edges should be defining a CLOSED series of
-                // points, we simply capture the first point of each
-                // edge
-                points.add( p2d1 );
+                else if( p2d2.depth > 0 )
+                  {
+                    // The start of the line is BEHIND the viewer, the end
+                    // of it is in FRONT
+
+                    // @@@ find intersection in x,y space, construct a new
+                    // Point2d and store that as the START point, instead
+                    // (i.e. compute a clipped line)
+                  }
               }
-            // If we got here then we didn't do a 'continue nextMesh'
-            // in the loop above, meaning that we have a full set of
-            // at least 3 points now to enclose the face.
-            final Point2d[] pointList = new Point2d[ points.size() ];
-            points.toArray( pointList );
-            zref.add( new ZRef(mesh,f,pointList) );
+
+            // Faces
+            nextFace:
+            for( Mesh.Face f : mesh.faces() )
+              {
+                points.clear(); // start with an empty list of points
+                for( Mesh.Edge e : f.edges() )
+                  {
+                    final Point2d p2d1 = project( xScreenCenter,
+                                                  yScreenCenter,
+                                                  e.getHead() );
+                    final Point2d p2d2 = project( xScreenCenter,
+                                                  yScreenCenter,
+                                                  e.getTail() );
+                    if( (p2d1.depth < 0) ||
+                        (p2d2.depth < 0) )
+                      {
+                        // One or both points of this edge lies behind the
+                        // viewer, so let's not render any part of the
+                        // face because it gets really complicated
+                        // trying to determine intersection points, and
+                        // render only subsections of the face.
+                        continue nextFace;
+                      }
+                    // As our edges should be defining a CLOSED series of
+                    // points, we simply capture the first point of each
+                    // edge
+                    points.add( p2d1 );
+                  }
+                // If we got here then we didn't do a 'continue nextMesh'
+                // in the loop above, meaning that we have a full set of
+                // at least 3 points now to enclose the face.
+                final Point2d[] pointList = new Point2d[ points.size() ];
+                points.toArray( pointList );
+                zref.add( new ZRef(mesh,f,pointList) );
+              }
           }
       }
 
@@ -633,33 +637,43 @@ class Viewer3d
                           final Point2d head,
                           final Point2d tail )
   {
-    if( edge.isSelected() )
+    final Mesh.Coloring coloring = edge.getColoring();
+    if( coloring != null )
       {
-        g2.setColor( edge.getColoring().selected() );
-      }
-    else if( edge.isFocused() )
-      {
-        g2.setColor( edge.getColoring().focused() );
-      }
-    else
-      {
-        g2.setColor( edge.getColoring().normal() );
-      }
-    if( originalStroke == null )
-      {
-        originalStroke = g2.getStroke();
-      }
-    g2.setStroke( edge.isSelected()
-                  ? selectedStroke
-                  : originalStroke );
-    g2.drawLine( head.x, head.y,
-                 tail.x, tail.y );
-    g2.setStroke( originalStroke );
-    if( RENDER_DRAWING_DEPTH )
-      {
-        g2.drawString( String.valueOf(++_counter),
-                       (head.x+tail.x)/2+5,
-                       (head.y+tail.y)/2+5 );
+        final Color color;
+        if( edge.isSelected() )
+          {
+            color = coloring.selected();
+          }
+        else if( edge.isFocused() )
+          {
+            color = coloring.focused();
+          }
+        else
+          {
+            color = coloring.normal();
+          }
+
+        if( color != null ) // no color, no rendering
+          {
+            g2.setColor( color );
+            if( originalStroke == null )
+              {
+                originalStroke = g2.getStroke();
+              }
+            g2.setStroke( edge.isSelected()
+                          ? selectedStroke
+                          : originalStroke );
+            g2.drawLine( head.x, head.y,
+                         tail.x, tail.y );
+            g2.setStroke( originalStroke );
+            if( RENDER_DRAWING_DEPTH )
+              {
+                g2.drawString( String.valueOf(++_counter),
+                               (head.x+tail.x)/2+5,
+                               (head.y+tail.y)/2+5 );
+              }
+          }
       }
   }
 
@@ -675,36 +689,48 @@ class Viewer3d
                           final Mesh.Face face,
                           final Point2d[] pN )
   {
-    final int size = pN.length;
-    final int[] x = new int[ size ];
-    final int[] y = new int[ size ];
+    final Mesh.Coloring coloring = face.getColoring();
+    if( coloring != null )
+      {
+        final Color color;
 
-    int n = 0;
-    for( int i=0; i<pN.length; i++ )
-      {
-        x[n] = pN[i].x;
-        y[n] = pN[i].y;
-        n++;
-      }
+        if( face.isSelected() )
+          {
+            color = coloring.selected();
+          }
+        else if( face.isFocused() )
+          {
+            color = coloring.focused();
+          }
+        else
+          {
+            color = coloring.normal();
+          }
 
-    if( face.isSelected() )
-      {
-        g2.setColor( face.getColoring().selected() );
-      }
-    else if( face.isFocused() )
-      {
-        g2.setColor( face.getColoring().focused() );
-      }
-    else
-      {
-        g2.setColor( face.getColoring().normal() );
-      }
-    g2.fillPolygon( x, y, size );
+        if( color != null )
+          {
+            g2.setColor( color );
 
-    if( RENDER_DRAWING_DEPTH )
-      {
-        // find the center of the face, drawString ++_counter there
-        // (as in paintPoint and paintEdge above)
+            final int size = pN.length;
+            final int[] x = new int[ size ];
+            final int[] y = new int[ size ];
+
+            int n = 0;
+            for( int i=0; i<pN.length; i++ )
+              {
+                x[n] = pN[i].x;
+                y[n] = pN[i].y;
+                n++;
+              }
+
+            g2.fillPolygon( x, y, size );
+
+            if( RENDER_DRAWING_DEPTH )
+              {
+                // find the center of the face, drawString ++_counter there
+                // (as in paintPoint and paintEdge above)
+              }
+          }
       }
   }
 
@@ -894,7 +920,7 @@ class Viewer3d
 
                   final float dist = (float)Math.hypot( (x3 - focusX),
                                                         (y3 - focusY) );
-                  if( dist <= 2.0f )
+                  if( dist <= 5.0f )
                     {
                       return new FocusInfo(mesh,edge);
                     }
@@ -905,8 +931,8 @@ class Viewer3d
         {
           Point2d p = refs[0];
 
-          if( (Math.abs(p.getX() - focusX) < 3) &&
-              (Math.abs(p.getY() - focusY) < 3) )
+          if( (Math.abs(p.getX() - focusX) < 6) &&
+              (Math.abs(p.getY() - focusY) < 6) )
             {
               return new FocusInfo(mesh,point);
             }
