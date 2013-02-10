@@ -1,0 +1,58 @@
+* Ringlord Extremely Simple Java 3D Engine
+:  Copyright © 2010–2012 Ringlord Technologiesa
+:  Copyright © 2010–2012 K. Udo Schuermann
+:  All rights reserved
+** Introduction
+   The Ringlord Technologies Extremely Simple Java 3D Engine (xs3d)
+   supports rendering of points (as tiny spheres), edges (connecting
+   two points), and faces (formed by three or more edges). If any
+   part of a compound element (edge or face) falls behind the viewer,
+   no part of it is rendered because the engine performs z-buffer
+   sorting and clipping at the object, rather than pixel level.
+   Objects are drawn from the back to the front. There is no hidden
+   surface removal.
+
+   Please note that there are plenty of 3D engines out there (Irrlicht
+   and JMonkeyEngine, for example, or the venerable Java3D) which are
+   to XS3D what a shining skyscraper is to a moonshiner's rickety
+   shack, but I've had need for drawing extremely simple shapes in 3D
+   space and did not want the weight and complexity of a full-blown 3D
+   framework, just a simple piece of code that did the job, but had no
+   dependencies.
+
+   You, too, might like it simply for what it is, an extremely simple
+   3D rendering engine!
+** License
+   The Ringlord Technologies Extremely Simple Java 3D Engine (xs3d) is
+   licensed under the GNU General Public License v3 (or later at your
+   option).
+
+   For the license text see the LICENSE.TXT file in the xs3d.jar
+   archive (treat the archive as a zip file for that purpose), run the
+   software with a -L option (“java -jar xs3d.jar -L”), or visit
+   http://www.gnu.org/licenses/
+** GitHub Repository
+   The sources are at GitHub (Project: xs3d):
+   https://github.com/kuschuermann/xs3d
+** Building from Source
+   The command "ant jar" should do it. If that fails, here is what you
+   need to know:
+
+   The source code is compatible with Java 1.5. Java 7 or Java 8 will
+   probably provide better performance.
+   
+   Also required (for easy rebuilding) is Apache Ant 1.7 but an
+   earlier version of Ant may also work; you could also rebuild the
+   software using "javac -d .build src/*.java" and then use jar to
+   build an appropriate jar file from a manifest file and the contents
+   of the .build/ directory. Essentially, these three commands are all
+   you really need to build it:
+   
+   : mkdir .build
+   : jar cfe odf.jar Test -C .build/ . \
+   :                      -C . src/*.java \
+   :                      README.text LICENSE.TXT build.xml
+
+   The included "build.xml" script builds for Java 1.7 by default but
+   you can force compilation with Java 1.5 by using a command like
+   "ant jar5"
