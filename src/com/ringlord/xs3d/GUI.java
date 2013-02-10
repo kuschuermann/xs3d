@@ -42,7 +42,7 @@ class GUI
   @Override
   public void run()
   {
-    this.frame = new JFrame( "XS3D" );
+    final JFrame frame = new JFrame( "XS3D" );
 
     final Viewer3d viewer3d = new Viewer3d();
     final InputHandler h = new InputHandler( viewer3d );
@@ -58,14 +58,14 @@ class GUI
         }
       } );
     viewer3d.requestFocusInWindow();
-    this.frame.setContentPane( viewer3d );
+    frame.setContentPane( viewer3d );
 
-    this.frame.pack();
+    frame.pack();
 
     // You could adjust the initial window position and size if you like
 
-    this.frame.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
-    this.frame.addWindowListener( new WindowAdapter()
+    frame.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
+    frame.addWindowListener( new WindowAdapter()
       {
         public void windowClosing( final WindowEvent e )
           {
@@ -74,7 +74,7 @@ class GUI
             System.exit( 0 );
           }
       } );
-    this.frame.setVisible( true );
+    frame.setVisible( true );
 
     // ======================================================================
 
@@ -221,9 +221,8 @@ class GUI
       }
     }.start();
 
-    mesh0.setFocusable( true ); // redundant as Meshes is focusable by default
+    // redundant as Meshes is focusable by default
+    mesh0.setFocusable( true );
     //    mesh1.setFocusable( false );
   }
-
-  private JFrame frame;
 }

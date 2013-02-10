@@ -144,10 +144,13 @@ class Viewer3d
 
   public void reset()
   {
-    this.modelScale = 1000; // a fudge factor to control distortion
+    // a fudge factor to control distortion
+    this.modelScale = 1000;
 
     // do not call setWorldCenterXYZ as that one repaints
-    worldCenterX = worldCenterY = worldCenterZ = 0.0d;
+    worldCenterX = 0.0d;
+    worldCenterY = 0.0d;
+    worldCenterZ = 0.0d;
 
     // do not call setScreenPosition as that one repaints
     screenPositionX = 0.0d;
@@ -384,9 +387,11 @@ class Viewer3d
     final double temp = modelScale * (viewAngleZ / z);
 
     final Point2d p2d = new Point2d();
+
+    // z is the distance from the viewer
     p2d.set( (int)(xScreenCenter + (temp * x)),
              (int)(yScreenCenter - (temp * y)),
-             z ); // z is the distance from the viewer
+             z );
     return p2d;
   }
 
@@ -424,7 +429,8 @@ class Viewer3d
     g2.setColor( Color.black );
     g2.fillRect( 0, 0, bounds.width, bounds.height );
 
-    if( RENDER_ANTI_ALIASED ) // use anti-aliased drawing? (tends to be slower)
+    // use anti-aliased drawing? (tends to be slower)
+    if( RENDER_ANTI_ALIASED )
       {
         g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                              RenderingHints.VALUE_ANTIALIAS_ON );
@@ -503,7 +509,8 @@ class Viewer3d
             nextFace:
             for( Mesh.Face f : mesh.faces() )
               {
-                points.clear(); // start with an empty list of points
+                // start with an empty list of points
+                points.clear();
                 for( Mesh.Edge e : f.edges() )
                   {
                     final Point2d p2d1 = project( xScreenCenter,
@@ -558,22 +565,24 @@ class Viewer3d
     for( int i=0; i<zcount; i++ )
       {
         final ZRef z = zbuf[i];
-        final Mesh m = z.getMesh();
-        final Point2d[] points = z.get();
-        if( points.length == 1 )                // 1 point is a point
+        final Point2d[] pointList = z.get();
+        if( pointList.length == 1 )
           {
+            // We have a single point
             if( RENDER_POINTS )
               {
-                paintPoint( g2, z.getPoint(), points[0] );
+                paintPoint( g2, z.getPoint(), pointList[0] );
               }
           }
-        else if( points.length == 2 )           // 2 points is an edge
+        else if( pointList.length == 2 )
           {
-            paintEdge( g2, z.getEdge(), points[0], points[1] );
+            // We have an edge
+            paintEdge( g2, z.getEdge(), pointList[0], pointList[1] );
           }
-        else                                    // 3+ points is a face
+        else
           {
-            paintFace( g2, z.getFace(), points );
+            // We have 3+ so it's a face
+            paintFace( g2, z.getFace(), pointList );
           }
       }
 
@@ -654,7 +663,8 @@ class Viewer3d
             color = coloring.normal();
           }
 
-        if( color != null ) // no color, no rendering
+        // no color, no rendering
+        if( color != null )
           {
             g2.setColor( color );
             if( originalStroke == null )
@@ -747,7 +757,7 @@ class Viewer3d
       this.y = y;
       this.z = z;
     }
-    double x, y, z;
+    private final double x, y, z;
   }
 
   /**
@@ -825,7 +835,7 @@ class Viewer3d
       }
     Point2d[] get()
     {
-      return refs;
+      return Arrays.copyOf(refs,refs.length);
     }
     public Mesh getMesh()
     {
@@ -849,7 +859,8 @@ class Viewer3d
       if( face != null )
         {
           boolean isInside = false;
-          Point2d p = refs[ refs.length-1 ]; // last/previous one
+          // last/previous one
+          Point2d p = refs[ refs.length-1 ];
           for( Point2d v : refs )
             {
               final int x0 = p.getX();
@@ -944,13 +955,16 @@ class Viewer3d
     {
       if( avgDepth > other.avgDepth )
         {
-          return -1;    // we're farther away, so put us before the other ZRef
+          // we're farther away, so put us before the other ZRef
+          return -1;
         }
       if( avgDepth < other.avgDepth )
         {
-          return 1;     // we're nearer, so put us after the other ZRef
+          // we're nearer, so put us after the other ZRef
+          return 1;
         }
-      return 0; // same distance
+      // same distance
+      return 0;
     }
     /**
      * Convenience method for calculating the average depth of the
@@ -980,7 +994,6 @@ class Viewer3d
   private double screenPositionX, screenPositionY, screenPositionZ;
   private double viewAngleX, viewAngleY, viewAngleZ;
   private double worldCenterX, worldCenterY, worldCenterZ;
-  private int focusX, focusY;
   private int modelScale;
   // values that are changed only when the viewangle is altered, and
   // are therefore pre-computed and cached for optimal performance

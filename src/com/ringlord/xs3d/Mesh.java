@@ -262,7 +262,7 @@ public class Mesh
       }
   }
 
-  public static class Coloring
+  public static final class Coloring
   {
     public Coloring( final Color normal,
                      final Color focused,
@@ -297,7 +297,7 @@ public class Mesh
    *
    * @author K. Udo Schuermann
    **/
-  public static class Point3d
+  public static final class Point3d
   {
     public Point3d( final double x,
                     final double y,
@@ -368,7 +368,7 @@ public class Mesh
    *
    * @author K. Udo Schuermann
    **/
-  public static class Edge
+  public static final class Edge
   {
     public Edge( final Coloring coloring,
                  final Point3d head,

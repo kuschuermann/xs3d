@@ -161,7 +161,8 @@ public class InputHandler
 
   private void testFocus()
   {
-    if( ! meshFocusListeners.isEmpty() ) // don't check focus if nobody is listening
+    // don't check focus if nobody is listening
+    if( ! meshFocusListeners.isEmpty() )
       {
         final FocusInfo focus = view.getFocusedMesh( mouseX, mouseY );
 

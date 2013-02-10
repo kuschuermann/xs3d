@@ -25,7 +25,7 @@ import javax.swing.SwingUtilities;
  *
  * @author K. Udo Schuermann
  **/
-class Main
+final class Main
 {
   /**
    * Entry point for XS3D.
@@ -46,6 +46,9 @@ class Main
       {
         System.err.println( "Non-graphical environment?" );
       }
+  }
+  private Main()
+  {
   }
   private static final String LICENSE_TEXT =
     "This program is free software: you can redistribute it and/or modify\n"+
