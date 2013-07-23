@@ -1,6 +1,6 @@
 * Ringlord Extremely Simple Java 3D Engine
-:  Copyright © 2010–2012 Ringlord Technologiesa
-:  Copyright © 2010–2012 K. Udo Schuermann
+:  Copyright © 2010–2013 Ringlord Technologies
+:  Copyright © 2010–2013 K. Udo Schuermann
 :  All rights reserved
 ** Introduction
    The Ringlord Technologies Extremely Simple Java 3D Engine (xs3d)
