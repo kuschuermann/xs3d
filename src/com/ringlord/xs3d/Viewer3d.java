@@ -178,9 +178,9 @@ class Viewer3d
     screenPositionZ = 50.d;
 
     // this one is complicated; it also repaints, which we want LAST!
-    setViewAngle( new Vector3d( -1.0d,
-	                        3.35d,
-	                        Math.PI ) );
+    setViewAngle( new Vector3d( Math.toRadians( 192.5d ), // 192½° Around the "equator"
+	                        Math.toRadians( 210.0d ), // 30° above the "equator"
+	                        Math.PI ) ); // Z-axis perfectly straight
   }
 
 
