@@ -39,7 +39,6 @@ class GUI
   // ==============================
   // Runnable
   // ==============================
-  @Override
   public void run()
   {
     final JFrame frame = new JFrame( "XS3D" );

@@ -49,6 +49,8 @@ class Viewer3d
   extends JComponent
   implements ChangeListener
 {
+  private static final long serialVersionUID = -2883317371127403464L;
+
   /**
    * Indicates whether to render a numeric count (starting at 1) near
    * points, edges, and faces as they are being rendered from the
@@ -135,7 +137,9 @@ class Viewer3d
     getActionMap().put( "reset",
                         new AbstractAction()
                         {
-                          public void actionPerformed( final ActionEvent e )
+                          private static final long serialVersionUID = -5310593910601826531L;
+
+			  public void actionPerformed( final ActionEvent e )
                           {
                             reset();
                           }
@@ -406,7 +410,6 @@ class Viewer3d
    * @param e The ChangeEvent describing the change. Generally the
    * source is one of the {@link Mesh}es added to this object.
    **/
-  @Override
   public void stateChanged( final ChangeEvent e )
   {
     repaint();
@@ -950,7 +953,6 @@ class Viewer3d
         }
       return null;
     }
-    @Override
     public int compareTo( final ZRef other )
     {
       if( avgDepth > other.avgDepth )

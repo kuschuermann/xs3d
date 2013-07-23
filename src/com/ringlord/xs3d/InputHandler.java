@@ -6,10 +6,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.event.MouseWheelEvent;
 
-import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
-import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
-import static java.awt.event.InputEvent.ALT_DOWN_MASK;
-
 import java.util.Set;
 import java.util.HashSet;
 
@@ -57,26 +53,21 @@ public class InputHandler
   // ======================================================================
   // MouseListener
   // ======================================================================
-  @Override
   public void mouseEntered( final MouseEvent e)
   {
   }
-  @Override
   public void mouseExited( final MouseEvent e)
   {
   }
-  @Override
   public void mousePressed( final MouseEvent e )
   {
     mouseX = e.getX();
     mouseY = e.getY();
   }
-  @Override
   public void mouseReleased( final MouseEvent e )
   {
     testFocus();
   }
-  @Override
   public void mouseClicked( final MouseEvent ev )
   {
     if( curFocus != null )
@@ -104,7 +95,6 @@ public class InputHandler
   // ======================================================================
   // MouseMotionListener
   // ======================================================================
-  @Override
   public void mouseMoved( final MouseEvent e )
   {
     mouseX = e.getX();
@@ -112,7 +102,6 @@ public class InputHandler
 
     testFocus();
   }
-  @Override
   public void mouseDragged( final MouseEvent e )
   {
     final int curX = e.getX();
@@ -141,7 +130,6 @@ public class InputHandler
   // ======================================================================
   // MouseWheelListener
   // ======================================================================
-  @Override
   public void mouseWheelMoved( final MouseWheelEvent e )
   {
     // The factor of 1.1 below controls the sensitivity of the mouse
