@@ -178,8 +178,10 @@ class Viewer3d
     screenPositionZ = 50.d;
 
     // this one is complicated; it also repaints, which we want LAST!
-    setViewAngle( new Vector3d( Math.toRadians( 192.5d ), // 192½° Around the "equator"
-	                        Math.toRadians( 210.0d ), // 30° above the "equator"
+    setViewAngle( new Vector3d( Math.toRadians( 192.5d ), // 192½° Around the
+	                                                  // "equator"
+	                        Math.toRadians( 210.0d ), // 30° above the
+	                                                  // "equator"
 	                        Math.PI ) ); // Z-axis perfectly straight
   }
 
@@ -428,16 +430,18 @@ class Viewer3d
    * @param point
    *          The point in 3D space to project.
    * 
-   * @return A point in 2D space, representing the (x,y) location of the 3D
-   *         coordinate on the current display (it may be off-screen, though)
-   *         and its depth (distance from the viewer, where a positive depth
-   *         means that "in front of" and a negative depth means "behind the
-   *         viewer". This depth value is used to determine visibility as well
-   *         as drawing order.
+   * @param p2d
+   *          A point in 2D space, representing the (x,y) location of the 3D
+   *          coordinate on the current display (it may be off-screen, though)
+   *          and its depth (distance from the viewer, where a positive depth
+   *          means that "in front of" and a negative depth means "behind the
+   *          viewer". This depth value is used to determine visibility as well
+   *          as drawing order.
    **/
-  private Point2d project( final double xScreenCenter,
-	                   final double yScreenCenter,
-	                   final Mesh.Point3d point )
+  private void project( final double xScreenCenter,
+	                final double yScreenCenter,
+	                final Mesh.Point3d point,
+	                final Point2d p2d )
   {
     final double px = point.getX() - worldCenterX;
     final double py = point.getY() - worldCenterY;
@@ -448,13 +452,10 @@ class Viewer3d
     final double z = ((screenPositionZ + (px * sinThetaCosPhi) + (py * cosThetaCosPhi) - (pz * sinPhi)));
     final double temp = modelScale * (viewAngleZ / z);
 
-    final Point2d p2d = new Point2d();
-
     // z is the distance from the viewer
     p2d.set( (int) (xScreenCenter + (temp * x)),
 	     (int) (yScreenCenter - (temp * y)),
 	     z );
-    return p2d;
   }
 
 
@@ -521,9 +522,11 @@ class Viewer3d
 	    // Points
 	    for( Mesh.Point3d p : mesh.points() )
 	      {
-		final Point2d p2d = project( xScreenCenter,
-		                             yScreenCenter,
-		                             p );
+		final Point2d p2d = new Point2d();
+		project( xScreenCenter,
+		         yScreenCenter,
+		         p,
+		         p2d );
 		if( p2d.depth > 0 )
 		  {
 		    // The ZRef will take the Point2d's z-coordinate to
@@ -537,12 +540,16 @@ class Viewer3d
 	    // Edges
 	    for( Mesh.Edge e : mesh.edges() )
 	      {
-		final Point2d p2d1 = project( xScreenCenter,
-		                              yScreenCenter,
-		                              e.getHead() );
-		final Point2d p2d2 = project( xScreenCenter,
-		                              yScreenCenter,
-		                              e.getTail() );
+		final Point2d p2d1 = new Point2d();
+		project( xScreenCenter,
+		         yScreenCenter,
+		         e.getHead(),
+		         p2d1 );
+		final Point2d p2d2 = new Point2d();
+		project( xScreenCenter,
+		         yScreenCenter,
+		         e.getTail(),
+		         p2d2 );
 		if( p2d1.depth > 0 )
 		  {
 		    if( p2d2.depth > 0 )
@@ -584,12 +591,16 @@ class Viewer3d
 		points.clear();
 		for( Mesh.Edge e : f.edges() )
 		  {
-		    final Point2d p2d1 = project( xScreenCenter,
-			                          yScreenCenter,
-			                          e.getHead() );
-		    final Point2d p2d2 = project( xScreenCenter,
-			                          yScreenCenter,
-			                          e.getTail() );
+		    final Point2d p2d1 = new Point2d();
+		    project( xScreenCenter,
+			     yScreenCenter,
+			     e.getHead(),
+			     p2d1 );
+		    final Point2d p2d2 = new Point2d();
+		    project( xScreenCenter,
+			     yScreenCenter,
+			     e.getTail(),
+			     p2d2 );
 		    if( (p2d1.depth < 0) || (p2d2.depth < 0) )
 		      {
 			// One or both points of this edge lies behind the
