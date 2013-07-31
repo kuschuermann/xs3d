@@ -14,20 +14,20 @@ import javax.swing.KeyStroke;
 
 
 /**
- * <p>Handles a few simple input events for a {@link Viewer3d}:</p>
- *
+ * <p>
+ * Handles a few simple input events for a {@link Viewer3d}:
+ * </p>
+ * 
  * <ol>
  * <li>ctrl-L resets the view to its initial settings
  * <li>(any) mouse drag (press and move) rotates the view
  * <li>mouse wheel zooms in/out
  * </ol>
- *
+ * 
  * @author K. Udo Schuermann
  **/
 public class InputHandler
-  implements MouseListener,
-             MouseMotionListener,
-             MouseWheelListener
+  implements MouseListener, MouseMotionListener, MouseWheelListener
 {
   public InputHandler( final Viewer3d view )
   {
@@ -38,59 +38,73 @@ public class InputHandler
     view.addMouseMotionListener( this );
     view.addMouseWheelListener( this );
 
-    view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put( KeyStroke.getKeyStroke("ctrl L"), "reset" );
+    view.getInputMap( JComponent.WHEN_IN_FOCUSED_WINDOW ).put( KeyStroke.getKeyStroke( "ctrl L" ),
+	                                                       "reset" );
   }
+
 
   public void addMeshFocusListener( final MeshFocusListener l )
   {
     meshFocusListeners.add( l );
   }
+
+
   public void removeMeshFocusListener( final MeshFocusListener l )
   {
     meshFocusListeners.remove( l );
   }
 
+
   // ======================================================================
   // MouseListener
   // ======================================================================
-  public void mouseEntered( final MouseEvent e)
+  public void mouseEntered( final MouseEvent e )
   {
   }
-  public void mouseExited( final MouseEvent e)
+
+
+  public void mouseExited( final MouseEvent e )
   {
   }
+
+
   public void mousePressed( final MouseEvent e )
   {
     mouseX = e.getX();
     mouseY = e.getY();
   }
+
+
   public void mouseReleased( final MouseEvent e )
   {
     testFocus();
   }
+
+
   public void mouseClicked( final MouseEvent ev )
   {
     if( curFocus != null )
       {
-        switch( curFocus.getType() )
-          {
-          case FACE:
-            Mesh.Face f = curFocus.getFace();
-            f.setSelected( ! f.isSelected() );
-            break;
+	switch (curFocus.getType())
+	  {
+	  case FACE:
+	    Mesh.Face f = curFocus.getFace();
+	    f.setSelected( !f.isSelected() );
+	    break;
 
-          case EDGE:
-            Mesh.Edge e = curFocus.getEdge();
-            e.setSelected( ! e.isSelected() );
-            break;
+	  case EDGE:
+	    Mesh.Edge e = curFocus.getEdge();
+	    e.setSelected( !e.isSelected() );
+	    break;
 
-          case POINT:
-            Mesh.Point3d p = curFocus.getPoint();
-            p.setSelected( ! p.isSelected() );
-          }
-        view.repaint();
+	  case POINT:
+	    Mesh.Point3d p = curFocus.getPoint();
+	    p.setSelected( !p.isSelected() );
+	  }
+	view.repaint();
       }
   }
+
 
   // ======================================================================
   // MouseMotionListener
@@ -102,6 +116,8 @@ public class InputHandler
 
     testFocus();
   }
+
+
   public void mouseDragged( final MouseEvent e )
   {
     final int curX = e.getX();
@@ -115,9 +131,9 @@ public class InputHandler
     final double viewAngleX = view.getViewAngleX();
     final double viewAngleY = view.getViewAngleY();
     final double viewAngleZ = view.getViewAngleZ();
-    view.setViewAngle( viewAngleX - (0.01d * (curX - mouseX)),
-                       viewAngleY + (0.01d * (curY - mouseY)),
-                       viewAngleZ );
+    view.setViewAngle( viewAngleX + (0.01d * (curX - mouseX)),
+	               viewAngleY + (0.01d * (curY - mouseY)),
+	               viewAngleZ );
 
     // Now that we have computed the delta between previous and
     // current mouse position, update the mouse position so that the
@@ -126,6 +142,7 @@ public class InputHandler
     mouseY = curY;
 
   }
+
 
   // ======================================================================
   // MouseWheelListener
@@ -137,101 +154,107 @@ public class InputHandler
     // is altered.
     if( e.getWheelRotation() > 0 )
       {
-        view.setScreenPositionZ( view.getScreenPositionZ() * 1.05d );
+	view.setScreenPositionZ( view.getScreenPositionZ() * 1.05d );
       }
     else
       {
-        view.setScreenPositionZ( view.getScreenPositionZ() / 1.05d );
+	view.setScreenPositionZ( view.getScreenPositionZ() / 1.05d );
       }
   }
+
 
   // ----------------------------------------------------------------------
 
   private void testFocus()
   {
     // don't check focus if nobody is listening
-    if( ! meshFocusListeners.isEmpty() )
+    if( !meshFocusListeners.isEmpty() )
       {
-        final FocusInfo focus = view.getFocusedMesh( mouseX, mouseY );
+	final FocusInfo focus = view.getFocusedMesh( mouseX,
+	                                             mouseY );
 
-        Object prev = null;
-        if( curFocus != null )
-          {
-            switch( curFocus.getType() )
-              {
-              case FACE:
-                Mesh.Face f = curFocus.getFace();
-                f.setFocused( false );
-                prev = f;
-                break;
-              case EDGE:
-                Mesh.Edge e = curFocus.getEdge();
-                e.setFocused( false );
-                prev = e;
-                break;
-              case POINT:
-                Mesh.Point3d p = curFocus.getPoint();
-                p.setFocused( false );
-                prev = p;
-                break;
-              }
-          }
+	Object prev = null;
+	if( curFocus != null )
+	  {
+	    switch (curFocus.getType())
+	      {
+	      case FACE:
+		Mesh.Face f = curFocus.getFace();
+		f.setFocused( false );
+		prev = f;
+		break;
+	      case EDGE:
+		Mesh.Edge e = curFocus.getEdge();
+		e.setFocused( false );
+		prev = e;
+		break;
+	      case POINT:
+		Mesh.Point3d p = curFocus.getPoint();
+		p.setFocused( false );
+		prev = p;
+		break;
+	      }
+	  }
 
-        Object cur = null;
-        if( focus != null )
-          {
-            switch( focus.getType() )
-              {
-              case FACE:
-                Mesh.Face f = focus.getFace();
-                f.setFocused( true );
-                cur = f;
-                break;
-              case EDGE:
-                Mesh.Edge e = focus.getEdge();
-                e.setFocused( true );
-                cur = e;
-                break;
-              case POINT:
-                Mesh.Point3d p = focus.getPoint();
-                p.setFocused( true );
-                cur = p;
-                break;
-              }
-          }
+	Object cur = null;
+	if( focus != null )
+	  {
+	    switch (focus.getType())
+	      {
+	      case FACE:
+		Mesh.Face f = focus.getFace();
+		f.setFocused( true );
+		cur = f;
+		break;
+	      case EDGE:
+		Mesh.Edge e = focus.getEdge();
+		e.setFocused( true );
+		cur = e;
+		break;
+	      case POINT:
+		Mesh.Point3d p = focus.getPoint();
+		p.setFocused( true );
+		cur = p;
+		break;
+	      }
+	  }
 
-        if( prev != cur )
-          {
-            if( prev != null )
-              {
-                notifyMeshFocusLost( curFocus );
-              }
-            if( cur != null )
-              {
-                notifyMeshFocusGained( focus );
-              }
-            view.repaint();
-          }
+	if( prev != cur )
+	  {
+	    if( prev != null )
+	      {
+		notifyMeshFocusLost( curFocus );
+	      }
+	    if( cur != null )
+	      {
+		notifyMeshFocusGained( focus );
+	      }
+	    view.repaint();
+	  }
 
-        curFocus = focus;
+	curFocus = focus;
       }
   }
+
 
   private void notifyMeshFocusGained( final FocusInfo info )
   {
-    final MeshFocusEvent e = new MeshFocusEvent( view, info );
+    final MeshFocusEvent e = new MeshFocusEvent( view,
+	                                         info );
     for( MeshFocusListener l : meshFocusListeners )
       {
-        l.meshFocusGained( e );
+	l.meshFocusGained( e );
       }
   }
 
+
   private void notifyMeshFocusLost( final FocusInfo info )
   {
-    final MeshFocusEvent e = new MeshFocusEvent( view, info );
+    final MeshFocusEvent e = new MeshFocusEvent( view,
+	                                         info );
     for( MeshFocusListener l : meshFocusListeners )
       {
-        l.meshFocusLost( e );
+	l.meshFocusLost( e );
       }
   }
 

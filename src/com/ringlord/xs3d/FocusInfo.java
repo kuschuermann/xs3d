@@ -9,26 +9,40 @@ public class FocusInfo
    * A {@link Mesh.Face} is in focus.
    **/
   public FocusInfo( final Mesh mesh,
-                    final Mesh.Face face )
+	            final Mesh.Face face )
   {
-    this( mesh, face, null, null );
+    this( mesh,
+	  face,
+	  null,
+	  null );
   }
+
+
   /**
    * A {@link Mesh.Edge} is in focus.
    **/
   public FocusInfo( final Mesh mesh,
-                    final Mesh.Edge edge )
+	            final Mesh.Edge edge )
   {
-    this( mesh, null, edge, null );
+    this( mesh,
+	  null,
+	  edge,
+	  null );
   }
+
+
   /**
    * A {@link Mesh.Point3d} is in focus.
    **/
   public FocusInfo( final Mesh mesh,
-                    final Mesh.Point3d point )
+	            final Mesh.Point3d point )
   {
-    this( mesh, null, null, point );
+    this( mesh,
+	  null,
+	  null,
+	  point );
   }
+
 
   // ----------------------------------------------------------------------
 
@@ -36,6 +50,8 @@ public class FocusInfo
   {
     return type;
   }
+
+
   /**
    * @return null if {@link #getType()} is NONE.
    **/
@@ -43,6 +59,8 @@ public class FocusInfo
   {
     return mesh;
   }
+
+
   /**
    * @return null if {@link #getType()} is not FACE.
    **/
@@ -50,6 +68,8 @@ public class FocusInfo
   {
     return face;
   }
+
+
   /**
    * @return null if {@link #getType()} is note EDGE.
    **/
@@ -57,6 +77,8 @@ public class FocusInfo
   {
     return edge;
   }
+
+
   /**
    * @return null if {@link #getType()} is POINT.
    **/
@@ -65,54 +87,59 @@ public class FocusInfo
     return point;
   }
 
+
   public String toString()
   {
     return type.toString();
   }
 
+
   // ----------------------------------------------------------------------
 
   private FocusInfo( final Mesh mesh,
-                     final Mesh.Face face,
-                     final Mesh.Edge edge,
-                     final Mesh.Point3d point )
+	             final Mesh.Face face,
+	             final Mesh.Edge edge,
+	             final Mesh.Point3d point )
   {
     this.mesh = mesh;
     if( mesh == null )
       {
-        throw new IllegalArgumentException( "FocusInfo must reference a Mesh" );
+	throw new IllegalArgumentException( "FocusInfo must reference a Mesh" );
       }
 
     if( point != null )
       {
-        this.face = null;
-        this.edge = null;
-        this.point = point;
-        this.type = Type.POINT;
+	this.face = null;
+	this.edge = null;
+	this.point = point;
+	this.type = Type.POINT;
       }
     else if( edge != null )
       {
-        this.face = null;
-        this.edge = edge;
-        this.point = null;
-        this.type = Type.EDGE;
+	this.face = null;
+	this.edge = edge;
+	this.point = null;
+	this.type = Type.EDGE;
       }
     else if( face != null )
       {
-        this.face = face;
-        this.edge = null;
-        this.point = null;
-        this.type = Type.FACE;
+	this.face = face;
+	this.edge = null;
+	this.point = null;
+	this.type = Type.FACE;
       }
     else
       {
-        throw new IllegalStateException( "FocusInfo must have one of Face, Edge, or Point3d" );
+	throw new IllegalStateException( "FocusInfo must have one of Face, Edge, or Point3d" );
       }
   }
 
+
   enum Type
   {
-    FACE, EDGE, POINT;
+    FACE,
+    EDGE,
+    POINT;
   }
 
   private final Type type;
@@ -121,4 +148,3 @@ public class FocusInfo
   private final Mesh.Edge edge;
   private final Mesh.Point3d point;
 }
-

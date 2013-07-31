@@ -177,11 +177,10 @@ class Viewer3d
     screenPositionY = 0.0d;
     screenPositionZ = 50.d;
 
-    // this one is complicated; it also repaints, which we want LAST!
-    setViewAngle( new Vector3d( Math.toRadians( 192.5d ), // 192½° Around the
-	                                                  // "equator"
-	                        Math.toRadians( 210.0d ), // 30° above the
-	                                                  // "equator"
+    // this method call repaints, which we want LAST!
+    setViewAngle( new Vector3d( Math.toRadians( 192.5d ), // View toward 192½°
+	                        Math.toRadians( 30.0d ), // Positioned 30° above
+	                                                 // the "equator"
 	                        Math.PI ) ); // Z-axis perfectly straight
   }
 
@@ -283,7 +282,8 @@ class Viewer3d
    * dragged with the left button held down.
    * 
    * @param viewAngle
-   *          The view angle, which defaults to (-1,&nbsp;3.35,&nbsp;&pi)
+   *          The view angle, see {@link #setViewAngle(double,double,double)}
+   *          for details.
    * 
    * @see #setViewAngle(double,double,double)
    **/
@@ -301,11 +301,17 @@ class Viewer3d
    * dragged with the left button held down.
    * 
    * @param x
-   *          The x-component of the view angle; it defaults to -1.
+   *          The x-component of the view angle (in radians): which direction
+   *          along the "equator" are we looking. It defaults to 347½°
    * @param y
-   *          The y-component of the view angle; it defaults to 3.35.
+   *          The y-component of the view angle (in radians): How far above or
+   *          below the "equator" the camera is located. -180° is looking
+   *          straight up from the south pole, 0° is looking straight along the
+   *          flat of the equator, 180° is looking straight down from the north
+   *          pole. It defaults to 30° (above) the equator.
    * @param z
-   *          The z-component of the view angle; it defaults to &pi;
+   *          The z-component of the view angle: How far is the Z-axis tilted.
+   *          It defaults to 180°, pointing the Z-Axis is perfectly straight up.
    * 
    * @see #setViewAngle(Vector3d)
    **/
@@ -335,7 +341,8 @@ class Viewer3d
   /**
    * Obtains the angle of rotation around the Z-axis.
    * 
-   * @return The angle (in radians)
+   * @return The x-component of the view angle (in radians): which direction
+   *         along the "equator" are we looking.
    */
   public double getViewAngleX()
   {
@@ -346,9 +353,10 @@ class Viewer3d
   /**
    * Obtains the angle of rotation above or below the XY-plane
    * 
-   * @return The angle (in radians) where 180° is perfectly aligned with the
-   *         ecliptic (flat-on the equator), 90° is lookup up from the south
-   *         pole, and 270° is looking down from the north pole.
+   * @return The y-component view angle (in radians): How far above or below the
+   *         "equator" the camera is located. -180° is looking straight up from
+   *         the south pole, 0° is looking straight along the flat of the
+   *         equator, 180° is looking straight down from the north pole.
    */
   public double getViewAngleY()
   {
@@ -359,8 +367,8 @@ class Viewer3d
   /**
    * Obtains the angle of rotation/tilt of the Z-axis.
    * 
-   * @return The angle (in radians) where 180° keeps the Z-axis pointed straight
-   *         up in the positive direction.
+   * @return The z-component of the view angle: How far is the Z-axis tilted. A
+   *         value of 180° points the Z axis straight up.
    */
   public double getViewAngleZ()
   {
@@ -453,8 +461,8 @@ class Viewer3d
     final double temp = modelScale * (viewAngleZ / z);
 
     // z is the distance from the viewer
-    p2d.set( (int) (xScreenCenter + (temp * x)),
-	     (int) (yScreenCenter - (temp * y)),
+    p2d.set( (int)(xScreenCenter + (temp * x)),
+	     (int)(yScreenCenter - (temp * y)),
 	     z );
   }
 
@@ -487,7 +495,7 @@ class Viewer3d
   {
     final long startTime = System.nanoTime();
 
-    final Graphics2D g2 = (Graphics2D) g;
+    final Graphics2D g2 = (Graphics2D)g;
 
     final Rectangle bounds = getBounds();
 
@@ -1055,7 +1063,7 @@ class Viewer3d
 	      // : whoops |
 	      // + yay
 	      //
-	      // For what it's wroth, the following holds:
+	      // For what it's worth, the following holds:
 	      //
 	      // u < 0 : it misses on the x1/y1 side of the segment
 	      // u > 1 : it misses on the x2/y2 side of the segment
@@ -1074,8 +1082,8 @@ class Viewer3d
 		  final float x3 = x1 + u * dX;
 		  final float y3 = y1 + u * dY;
 
-		  final float dist = (float) Math.hypot( (x3 - focusX),
-			                                 (y3 - focusY) );
+		  final float dist = (float)Math.hypot( (x3 - focusX),
+			                                (y3 - focusY) );
 		  if( dist <= 5.0f )
 		    {
 		      return new FocusInfo( mesh,
