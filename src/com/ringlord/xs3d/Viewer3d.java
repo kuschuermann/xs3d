@@ -504,7 +504,7 @@ class Viewer3d
 	         0,
 	         bounds.width,
 	         bounds.height );
-
+    
     // use anti-aliased drawing? (tends to be slower)
     if( RENDER_ANTI_ALIASED )
       {
@@ -512,8 +512,9 @@ class Viewer3d
 	                     RenderingHints.VALUE_ANTIALIAS_ON );
       }
 
-    final double xScreenCenter = bounds.width / 2.0d;
-    final double yScreenCenter = bounds.height / 2.0d;
+    final Rectangle dim = getBounds();
+    final double xScreenCenter = dim.width / 2.0d;
+    final double yScreenCenter = dim.height / 2.0d;
 
     // Collect ZRef objects which we can sort to ensure drawing from
     // back to front, and therefore effect proper depth perception,
